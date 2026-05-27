@@ -1,0 +1,120 @@
+{
+  "decision_prompt": {
+    "needs_user_confirmation": [
+      "Confirm whether to start the 48 hour demo."
+    ],
+    "reject_command": "tradar reject card_c833778e4b64",
+    "should_not_do": [
+      "Do not build a desktop app before the agent quality loop is validated."
+    ],
+    "snooze_command": "tradar snooze card_c833778e4b64",
+    "start_command": "tradar accept card_c833778e4b64",
+    "suggested_start_card_id": "card_c833778e4b64"
+  },
+  "opportunity_cards": [
+    {
+      "card_id": "card_c833778e4b64",
+      "credible_success_path": {
+        "credible_demand_evidence": "The cited sessions and spec both point to repeated local project selection work.",
+        "current_alternative": "Manual notes, scattered agent session search, and ad hoc project docs.",
+        "first_distribution_path": "Share a local-first CLI demo with solo builders who already use coding agents.",
+        "kill_signal": "Users do not accept any generated card after reviewing the evidence chain.",
+        "narrow_user": "Solo builders using local coding agents for projects and research.",
+        "two_week_validation_signal": "Three builders accept one generated card and start a 48 hour demo."
+      },
+      "demo_48h": [
+        "Scan local agent sessions and project docs.",
+        "Generate one evidence-backed report.",
+        "Accept or reject the top project card."
+      ],
+      "demo_brief": {
+        "boundary_48h": "No desktop app, watcher, sync, or team workflow.",
+        "core_interaction": "Review one card, inspect cited evidence, then accept, snooze, or reject.",
+        "data_needed": [
+          "Codex session JSONL",
+          "project docs"
+        ],
+        "demo_kill_signal": "The top card feels generic or unsupported by evidence.",
+        "demo_success_signal": "The user accepts one card and starts a concrete demo.",
+        "one_screen_product_shape": "A weekly report with a top demo, cards, and evidence citations.",
+        "prototype_panel": {
+          "core_interaction_state": "A selected card shows evidence ids and a 48 hour plan.",
+          "data_placeholders": [
+            "evidence id",
+            "session title",
+            "demo command"
+          ],
+          "empty_state": "No repeated opportunity has enough evidence yet.",
+          "one_screen_mock": "Left rail with evidence, right panel with project card and decision buttons.",
+          "success_state": "One card is accepted and marked as this week's demo."
+        },
+        "prototype_prompt": "Build one screen for reviewing Tradar cards."
+      },
+      "evidence_ids": [
+        "ev_codex_1",
+        "ev_docs_1"
+      ],
+      "evidence_notes": [
+        "The Codex session evidence shows repeated project radar requests.",
+        "The MVP spec requires evidence-backed opportunity cards."
+      ],
+      "first_users": "Solo builders who already rely on local coding agents.",
+      "kill_signals": [
+        "No accepted card after one real weekly report."
+      ],
+      "one_sentence": "Turn local coding-agent work traces into evidence-backed project opportunity cards.",
+      "risks": [
+        "The report could collapse into generic startup ideas if evidence citation is weak."
+      ],
+      "search_trace": {
+        "impact": "none",
+        "query_summary": "",
+        "sources_consulted": [],
+        "used_search": false
+      },
+      "status_hint": "recurring",
+      "title": "Tradar for Solo Builders",
+      "why_now": [
+        "The core local evidence pipeline already exists."
+      ],
+      "why_you": [
+        "The user already preserves agent sessions, project docs, and planning notes."
+      ]
+    }
+  ],
+  "run_summary": {
+    "confidence_note": "The opportunity is based on repeated local agent work and the MVP spec.",
+    "config_overrides": {
+      "agent_mode": "codex",
+      "analyst_prompt_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "html_design_prompt_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "render_mode": "base",
+      "schema_repair_prompt_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "debug_bundle_path": "<RUN_DIR>",
+    "evidence_count": 2,
+    "generated_at": "2026-05-24T08:00:00Z",
+    "rendered_by": "base",
+    "run_id": "run_golden_tradar",
+    "sources_failed": [],
+    "sources_requested": [
+      "codex_session",
+      "project_docs"
+    ],
+    "sources_succeeded": [
+      "codex_session",
+      "project_docs"
+    ],
+    "timezone": "Asia/Shanghai",
+    "warning_count": 0,
+    "days_window": 30
+  },
+  "this_weeks_demo": {
+    "card_id": "card_c833778e4b64",
+    "evidence_strength": "medium",
+    "skip_command": "tradar snooze card_c833778e4b64",
+    "start_command": "tradar accept card_c833778e4b64",
+    "summary": "Run one local evidence-backed report and decide whether to start a 48 hour demo.",
+    "title": "Tradar for Solo Builders"
+  }
+}

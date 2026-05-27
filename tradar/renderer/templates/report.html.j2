@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tradar - {{ report.run_summary.run_id }}</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 0; color: #1d1d1f; background: #f7f7f5; }
+    main { max-width: 1120px; margin: 0 auto; padding: 24px; }
+    section { margin: 0 0 28px; }
+    h1, h2, h3 { margin: 0 0 12px; }
+    .notice { color: #6b5b00; background: #fff8d7; border: 1px solid #eadb91; padding: 10px 12px; border-radius: 6px; }
+    .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; }
+    .metric, .card { background: #fff; border: 1px solid #deded8; border-radius: 8px; padding: 14px; }
+    .card { margin-bottom: 12px; }
+    .command { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background: #111; color: #fff; padding: 8px; border-radius: 6px; overflow-wrap: anywhere; }
+    .muted { color: #666; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.92rem; }
+    ul, ol { padding-left: 22px; }
+  </style>
+</head>
+<body>
+<main>
+  <p class="notice">本报告基于本地数据生成，未做完整脱敏。rendered_by: {{ report.run_summary.rendered_by }}</p>
+
+  <section aria-labelledby="run-summary">
+    <h1 id="run-summary">Run Summary</h1>
+    <div class="summary">
+      <div class="metric">run_id<br><strong>{{ report.run_summary.run_id }}</strong></div>
+      <div class="metric">generated_at<br><strong>{{ report.run_summary.generated_at.isoformat() }}</strong></div>
+      <div class="metric">days_window<br><strong>{{ report.run_summary.days_window }}</strong></div>
+      <div class="metric">evidence_count<br><strong>{{ report.run_summary.evidence_count }}</strong></div>
+      <div class="metric">warning_count<br><strong>{{ report.run_summary.warning_count }}</strong></div>
+      <div class="metric">Report Status<br><strong>{{ report.run_summary.report_status }}</strong></div>
+    </div>
+    <h2>Sources</h2>
+    <div class="summary">
+      <div class="metric">requested<br><strong>{{ report.run_summary.sources_requested | join(", ") }}</strong></div>
+      <div class="metric">succeeded<br><strong>{{ report.run_summary.sources_succeeded | join(", ") }}</strong></div>
+      <div class="metric">failed<br><strong>{{ report.run_summary.sources_failed | join(", ") }}</strong></div>
+    </div>
+    {% if report.run_summary.confidence_note %}
+      <h2>Confidence</h2>
+      <p>{{ report.run_summary.confidence_note }}</p>
+    {% endif %}
+    {% if report.run_summary.status_notes %}
+      <h2>Status Notes</h2>
+      <ul>
+        {% for note in report.run_summary.status_notes %}
+          <li>{{ note }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+    {% if report.run_summary.warning_events %}
+      <h2>Warning Events</h2>
+      <ul>
+        {% for key, value in report.run_summary.warning_events.items() %}
+          <li><span class="mono">{{ key }}</span>: <span class="mono">{{ value }}</span></li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+    {% if report.run_summary.source_warning_counts %}
+      <h2>Source Warning Counts</h2>
+      <ul>
+        {% for key, value in report.run_summary.source_warning_counts.items() %}
+          <li><span class="mono">{{ key }}</span>: <span class="mono">{{ value }}</span></li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+    {% if report.run_summary.source_scan_file_counts %}
+      <h2>Source Scan Metrics</h2>
+      <ul>
+        {% for key, value in report.run_summary.source_scan_file_counts.items() %}
+          <li>
+            <span class="mono">{{ key }}</span>:
+            <span class="mono">{{ value }}</span> files,
+            <span class="mono">{{ report.run_summary.source_scan_elapsed_ms.get(key, 0) }}</span> ms
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+    {% if report.run_summary.agent_elapsed_ms is not none %}
+      <h2>Agent Trace</h2>
+      <ul>
+        <li>agent_elapsed_ms: <span class="mono">{{ report.run_summary.agent_elapsed_ms }}</span></li>
+        <li>search_used_count: <span class="mono">{{ report.run_summary.search_used_count }}</span></li>
+        <li>repair_used: <span class="mono">{{ report.run_summary.repair_used }}</span></li>
+        {% if report.run_summary.repair_elapsed_ms is not none %}
+          <li>repair_elapsed_ms: <span class="mono">{{ report.run_summary.repair_elapsed_ms }}</span></li>
+        {% endif %}
+        {% if report.run_summary.enhanced_elapsed_ms is not none %}
+          <li>enhanced_elapsed_ms: <span class="mono">{{ report.run_summary.enhanced_elapsed_ms }}</span></li>
+        {% endif %}
+        {% if report.run_summary.search_trace_summary %}
+          <li>search_trace_summary: {{ report.run_summary.search_trace_summary }}</li>
+        {% endif %}
+      </ul>
+    {% endif %}
+    {% if report.run_summary.next_steps %}
+      <h2>Next Steps</h2>
+      <ul>
+        {% for step in report.run_summary.next_steps %}
+          <li><span class="mono">{{ step }}</span></li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+    {% if report.run_summary.config_overrides %}
+      <h2>Prompt Assets</h2>
+      <ul>
+        {% for key, value in report.run_summary.config_overrides.items() %}
+          <li><span class="mono">{{ key }}</span>: <span class="mono">{{ value }}</span></li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+    {% if report.run_summary.debug_bundle_path %}
+      <h2>Debug Artifacts</h2>
+      <p class="muted">local run directory: <span class="mono">{{ report.run_summary.debug_bundle_path }}</span></p>
+      <ul>
+        {% for artifact in ["run.json", "warnings.jsonl", "evidence_pack.json", "agent_raw_output.json", "validated_report.json", "render.log", "report.html"] %}
+          <li><a class="mono" href="{{ artifact }}">{{ artifact }}</a></li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </section>
+
+  <section aria-labelledby="this-weeks-demo">
+    <h2 id="this-weeks-demo">This Week's Demo</h2>
+    {% if report.this_weeks_demo %}
+      <div class="card">
+        <h3>{{ report.this_weeks_demo.title }}</h3>
+        <p>{{ report.this_weeks_demo.summary }}</p>
+        <p class="muted">card_id: {{ report.this_weeks_demo.card_id }} | evidence_strength: {{ report.this_weeks_demo.evidence_strength }}</p>
+        <div class="command">{{ report.this_weeks_demo.start_command }}</div>
+        <div class="command">{{ report.this_weeks_demo.skip_command }}</div>
+      </div>
+    {% else %}
+      <p>本周不建议启动 demo。先补充 evidence 或运行 sources doctor。</p>
+    {% endif %}
+  </section>
+
+  <section aria-labelledby="project-opportunity-cards">
+    <h2 id="project-opportunity-cards">Project Opportunity Cards</h2>
+    {% for card in report.opportunity_cards %}
+      <article class="card">
+        <h3>{{ card.title }}</h3>
+        <p class="muted">card_id: {{ card.card_id }} | status_hint: {{ card.status_hint }}</p>
+        <p>{{ card.one_sentence }}</p>
+        <h4>Evidence</h4>
+        <ul>
+          {% for note in card.evidence_notes %}
+            <li>{{ note }}</li>
+          {% endfor %}
+        </ul>
+        <h4>Why You</h4>
+        <ul>{% for item in card.why_you %}<li>{{ item }}</li>{% endfor %}</ul>
+        <h4>Why Now</h4>
+        <ul>{% for item in card.why_now %}<li>{{ item }}</li>{% endfor %}</ul>
+        <h4>Risks</h4>
+        <ul>{% for item in card.risks %}<li>{{ item }}</li>{% endfor %}</ul>
+        <h4>Kill Signal</h4>
+        <ul>{% for item in card.kill_signals %}<li>{{ item }}</li>{% endfor %}</ul>
+      </article>
+    {% else %}
+      <p>没有足够 evidence 生成项目机会卡。</p>
+    {% endfor %}
+  </section>
+
+  <section aria-labelledby="demo-briefs">
+    <h2 id="demo-briefs">Demo Briefs</h2>
+    {% for card in report.opportunity_cards if card.demo_brief %}
+      <article class="card">
+        <h3>{{ card.title }}</h3>
+        <p><strong>One-screen product shape:</strong> {{ card.demo_brief.one_screen_product_shape }}</p>
+        <p><strong>Core interaction:</strong> {{ card.demo_brief.core_interaction }}</p>
+        <p><strong>Prototype panel:</strong> {{ card.demo_brief.prototype_panel.one_screen_mock }}</p>
+        <p><strong>48h boundary:</strong> {{ card.demo_brief.boundary_48h }}</p>
+      </article>
+    {% else %}
+      <p>当前没有高置信 Demo Brief。</p>
+    {% endfor %}
+  </section>
+
+  <section aria-labelledby="decision-prompt">
+    <h2 id="decision-prompt">Decision Prompt</h2>
+    {% if report.decision_prompt.start_command %}<div class="command">{{ report.decision_prompt.start_command }}</div>{% endif %}
+    {% if report.decision_prompt.snooze_command %}<div class="command">{{ report.decision_prompt.snooze_command }}</div>{% endif %}
+    {% if report.decision_prompt.reject_command %}<div class="command">{{ report.decision_prompt.reject_command }}</div>{% endif %}
+    <ul>
+      {% for item in report.decision_prompt.should_not_do %}<li>{{ item }}</li>{% endfor %}
+      {% for item in report.decision_prompt.needs_user_confirmation %}<li>{{ item }}</li>{% endfor %}
+    </ul>
+  </section>
+</main>
+</body>
+</html>

@@ -1,0 +1,2 @@
+abc1234	2026-05-22	feat(algo): add recommendation reason templates
+def5678	2026-05-20	docs: record weekly radar decision

@@ -1,0 +1,9 @@
+title = "Tradar gitleaks config"
+
+[allowlist]
+description = "Allow documented placeholder values in examples and tests."
+regexes = [
+  '''/path/to/project''',
+  '''your_[A-Za-z0-9_]+''',
+  '''changeme''',
+]
