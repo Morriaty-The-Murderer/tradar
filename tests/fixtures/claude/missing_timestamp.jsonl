@@ -1,0 +1,2 @@
+{"type":"permission-mode","sessionId":"claude-session-missing-ts","permissionMode":"default"}
+{"type":"user","sessionId":"claude-session-missing-ts","uuid":"u1","cwd":"<USER_HOME>/PycharmProjects/<REPO_NAME>","gitBranch":"main","entrypoint":"cli","version":"1.0.0","message":{"role":"user","content":"Summarize this project."}}

@@ -1,0 +1,30 @@
+{
+  "items": [
+    {
+      "confidence": 1.0,
+      "evidence_id": "ev_codex_1",
+      "observed_at": "2026-05-24T08:00:00Z",
+      "raw_excerpt": "Repeated sessions ask for a local project opportunity radar.",
+      "recurrence_count": 3,
+      "source_ref": "<CODEX_SESSION>",
+      "source_type": "codex_session",
+      "summary": "The user repeatedly asks coding agents to organize project ideas from work traces.",
+      "title": "Repeated agent-native project radar work"
+    },
+    {
+      "confidence": 1.0,
+      "evidence_id": "ev_docs_1",
+      "observed_at": "2026-05-24T08:00:00Z",
+      "raw_excerpt": "MVP scope requires evidence-backed opportunity cards and 48 hour demo briefs.",
+      "recurrence_count": 1,
+      "source_ref": "<PROJECT_DOC>",
+      "source_type": "project_docs",
+      "summary": "The project spec defines evidence-backed project opportunity cards.",
+      "title": "Tradar MVP spec"
+    }
+  ],
+  "omitted_summary": {
+    "by_source_type": {},
+    "total_omitted": 0
+  }
+}

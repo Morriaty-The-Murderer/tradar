@@ -1,0 +1,26 @@
+# Copy this file to ~/.config/tradar/config.toml and adjust the paths.
+#
+# Do not commit your real local config if it contains private paths or output
+# locations inside sensitive projects.
+
+codex_session_paths = ["~/.codex/sessions"]
+claude_project_paths = ["~/.claude/projects"]
+project_roots = ["/path/to/project"]
+
+output_dir = "~/.local/share/tradar/runs"
+state_dir = "~/.local/share/tradar"
+
+days_window = 30
+allow_broad_root = false
+
+max_evidence_items = 120
+max_pack_tokens = 24000
+max_source_file_bytes = 5242880
+
+agent_timeout_seconds = 300
+schema_repair_timeout_seconds = 300
+html_design_timeout_seconds = 300
+
+save_agent_raw_output = true
+debug_retention_run_count = 20
+low_confidence_evidence_threshold = 3

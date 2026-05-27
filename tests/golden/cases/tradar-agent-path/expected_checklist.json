@@ -1,0 +1,8 @@
+{
+  "failures": [],
+  "manual_checks": [
+    "manual.no_unsupported_project_judgment",
+    "manual.success_path_from_evidence_not_business_plan",
+    "manual.user_wants_48h_demo"
+  ]
+}

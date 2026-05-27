@@ -1,0 +1,29 @@
+.venv/
+.uv-cache/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+__pycache__/
+*.py[cod]
+
+.idea/
+.serena/
+
+# Local-only planning and discovery notes. Keep these out of the public branch.
+private/
+
+# Local credentials and machine-specific environment files.
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+
+# Local Tradar state and generated reports.
+.tradar/
+runs/
+reports/
+run_*/
+*.sqlite
+*.sqlite-*
+*.db
