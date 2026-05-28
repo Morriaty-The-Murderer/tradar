@@ -21,6 +21,8 @@ def test_config_loads_save_agent_raw_output_flag(tmp_path: Path) -> None:
                 "agent_timeout_seconds = 11",
                 "schema_repair_timeout_seconds = 12",
                 "html_design_timeout_seconds = 13",
+                'codex_binary = "/opt/bin/codex-preview"',
+                'claude_binary = "/opt/bin/claude-code"',
                 "debug_retention_run_count = 7",
                 "low_confidence_evidence_threshold = 9",
             ]
@@ -36,6 +38,8 @@ def test_config_loads_save_agent_raw_output_flag(tmp_path: Path) -> None:
     assert config.agent_timeout_seconds == 11
     assert config.schema_repair_timeout_seconds == 12
     assert config.html_design_timeout_seconds == 13
+    assert config.codex_binary == "/opt/bin/codex-preview"
+    assert config.claude_binary == "/opt/bin/claude-code"
     assert config.debug_retention_run_count == 7
     assert config.low_confidence_evidence_threshold == 9
 
@@ -51,6 +55,8 @@ def test_default_config_keeps_agent_raw_output_enabled(tmp_path: Path) -> None:
     assert config.agent_timeout_seconds == 300
     assert config.schema_repair_timeout_seconds == 300
     assert config.html_design_timeout_seconds == 300
+    assert config.codex_binary == "codex"
+    assert config.claude_binary == "claude"
     assert config.debug_retention_run_count == 20
     assert config.low_confidence_evidence_threshold == 3
     assert "save_agent_raw_output = true" in config_path.read_text(encoding="utf-8")
@@ -59,6 +65,8 @@ def test_default_config_keeps_agent_raw_output_enabled(tmp_path: Path) -> None:
     assert "agent_timeout_seconds = 300" in config_path.read_text(encoding="utf-8")
     assert "schema_repair_timeout_seconds = 300" in config_path.read_text(encoding="utf-8")
     assert "html_design_timeout_seconds = 300" in config_path.read_text(encoding="utf-8")
+    assert 'codex_binary = "codex"' in config_path.read_text(encoding="utf-8")
+    assert 'claude_binary = "claude"' in config_path.read_text(encoding="utf-8")
     assert "debug_retention_run_count = 20" in config_path.read_text(encoding="utf-8")
     assert "low_confidence_evidence_threshold = 3" in config_path.read_text(encoding="utf-8")
 

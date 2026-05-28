@@ -1,4 +1,4 @@
-# Tradar v0.1 Usage
+# Tradar v0.2 Usage
 
 ## 推荐验证路径
 
@@ -35,6 +35,12 @@ uv run tradar generate --days 30
 uv run tradar generate --days 30 --agent codex
 ```
 
+或使用 Claude Code analyst 路径：
+
+```bash
+uv run tradar generate --days 30 --agent claude
+```
+
 日常使用可以直接执行：
 
 ```bash
@@ -57,12 +63,33 @@ uv run tradar golden-check ~/.local/share/tradar/runs/<run_id>
 
 - `--agent base` 是默认值，只生成 evidence report，不调用外部 agent。
 - `--agent codex` 会调用 `codex exec --json --output-last-message ... -`。
-- Codex adapter 会把 analyst prompt、run context 和 evidence pack 组合成 `agent_prompt.md`。
+- `--agent claude` 会调用 `claude --bare -p --output-format json --no-session-persistence`。
+- agent adapter 会把 analyst prompt、run context 和 evidence pack 组合成 `agent_prompt.md`。
 - `agent_prompt.md` 只发送 `title`、`summary`、source metadata、recurrence 和 confidence，不发送 `raw_excerpt`。
 - agent final message 必须是 `RadarReport` JSON。
-- Codex 外呼非零退出时会输出 `agent.execution_failed`，不会把 stderr 当成 schema JSON 继续 repair。
+- agent 外呼非零退出时会输出 `agent.execution_failed`，不会把 stderr 当成 schema JSON 继续 repair。
 - agent 引用未知 `evidence_id` 时 fail fast，不生成假报告。
 - schema repair 仍然最多只执行一次。
+
+## agent binary 配置
+
+默认配置会直接调用 PATH 里的主流 coding-agent binary：
+
+```toml
+codex_binary = "codex"
+claude_binary = "claude"
+```
+
+如果本机使用 wrapper、版本固定路径或别名，可以把它们改成绝对路径，例如：
+
+```toml
+codex_binary = "/opt/homebrew/bin/codex"
+claude_binary = "/opt/homebrew/bin/claude"
+```
+
+`--agent codex` 和 Codex schema repair 使用 `codex_binary`。`--agent claude` 和 Claude Code schema repair 使用 `claude_binary`。`--render enhanced` 当前仍使用 Codex HTML Design Subagent，因此使用 `codex_binary`。
+
+Claude Code adapter 默认使用 `--bare`，避免脚本化调用隐式加载本机 `CLAUDE.md`、hooks、plugins 或 MCP 配置。使用该路径时，需要按 Claude Code CLI 要求提供可用于 bare mode 的认证方式，例如 `ANTHROPIC_API_KEY` 或显式 `--settings` 中的 `apiKeyHelper`。
 
 ## render 路径边界
 
@@ -74,7 +101,8 @@ uv run tradar golden-check ~/.local/share/tradar/runs/<run_id>
 
 ## CLI 错误边界
 
-- 非法 `--agent` 会输出 `config.invalid_agent_mode` 和 `next_action=use_--agent_base_or_codex`。
+- 配置文件不存在会输出 `config.missing` 和 `next_action=run_tradar_init_or_pass_--config`。
+- 非法 `--agent` 会输出 `config.invalid_agent_mode` 和 `next_action=use_--agent_base_codex_or_claude`。
 - 非法 `--render` 会输出 `config.invalid_render_mode` 和 `next_action=use_--render_base_or_enhanced`。
 - Agent 外呼失败会输出 `agent.execution_failed`、artifact path 和 `next_action=inspect_agent_prompt_and_retry`。
 - Agent 输出 schema 无效会输出 `agent.schema_invalid`、`run_id`、artifact path 和 `next_action=inspect_agent_raw_output_and_schema_repair`。
@@ -110,7 +138,7 @@ scan 流程固定为：
 RawEvent -> PrivacyGate.filter() -> Normalizer -> Evidence Store
 ```
 
-v0.1 的 `PrivacyGate` 是空实现，不做隐私分类，也不修改事件内容。它只保留后续加入脱敏或过滤策略时的稳定调用点。
+当前 `PrivacyGate` 是空实现，不做隐私分类，也不修改事件内容。它只保留后续加入脱敏或过滤策略时的稳定调用点。
 
 project docs connector 只读取 `AGENTS.md`、`CLAUDE.md`、`README.md`、`CHANGELOG.md`、`docs/**/*.md` 和 `notes/**/*.md`。其他位置的 Markdown 默认不进入 evidence，避免把实现细节或临时草稿当成项目意图。
 
@@ -152,6 +180,8 @@ max_source_file_bytes = 5242880
 agent_timeout_seconds = 300
 schema_repair_timeout_seconds = 300
 html_design_timeout_seconds = 300
+codex_binary = "codex"
+claude_binary = "claude"
 ```
 
 `scan` 使用 `max_source_file_bytes` 跳过过大的 JSONL / Markdown 源文件。`generate` 会把 `max_evidence_items` 和 `max_pack_tokens` 传给 pack builder。超出条数或 token 预算的 evidence 不会进入 analyst prompt，会记录在 `evidence_pack.json` 的 `omitted_summary` 中。
@@ -199,7 +229,7 @@ low_confidence_evidence_threshold = 3
 
 ## golden report 人工验收
 
-v0.1 不自动评价 agent 创意质量。人工验收时只判断：
+当前版本不自动评价 agent 创意质量。人工验收时只判断：
 
 - 机会卡是否来自真实行动证据，而不是泛泛总结。
 - 证据链是否足够让用户回看来源。

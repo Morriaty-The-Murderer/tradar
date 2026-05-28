@@ -33,8 +33,9 @@ the project ideas that keep reappearing in their own work.
 
 ## Status
 
-Tradar is an early v0.1 CLI engine. It is usable from a source checkout, but it
-is not yet packaged for PyPI.
+Tradar is an early v0.2 CLI. It is usable from a source checkout, builds local
+wheel and source distributions, and has release automation prepared for PyPI
+trusted publishing.
 
 ## Requirements
 
@@ -42,6 +43,7 @@ is not yet packaged for PyPI.
 - [`uv`](https://docs.astral.sh/uv/)
 - Optional: Codex CLI, if you want to use `--agent codex` or
   `--render enhanced`
+- Optional: Claude Code CLI, if you want to use `--agent claude`
 
 ## Quick Start
 
@@ -84,6 +86,12 @@ Run scan + analyst generation:
 uv run tradar run --days 30 --agent codex
 ```
 
+Run scan + Claude Code analyst generation:
+
+```bash
+uv run tradar run --days 30 --agent claude
+```
+
 Generate an enhanced HTML report:
 
 ```bash
@@ -120,6 +128,8 @@ Tradar separates evidence processing, analyst judgment, and presentation:
 
 - `--agent base`: deterministic local report, no external analyst call.
 - `--agent codex`: sends a bounded evidence pack to the Codex analyst adapter.
+- `--agent claude`: sends a bounded evidence pack to the Claude Code analyst
+  adapter.
 - `--render base`: deterministic base HTML renderer.
 - `--render enhanced`: sends the base HTML to an HTML design subagent and falls
   back to base HTML if required sections are missing.
@@ -142,7 +152,7 @@ Each run directory includes:
 - `render.log`
 - `report.html`
 
-When Codex adapters are used, the run directory may also include:
+When external agent adapters are used, the run directory may also include:
 
 - `agent_prompt.md`
 - `agent_last_message.json`
@@ -220,7 +230,7 @@ and packaging. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ```text
 tradar/
-  agent_runner/      # Codex analyst, schema repair, and HTML design adapters
+  agent_runner/      # Codex, Claude Code, schema repair, and HTML design adapters
   cli/               # Typer CLI
   config/            # Local config and defaults
   connectors/        # Codex, Claude Code, project docs, and git parsers
@@ -235,7 +245,6 @@ docs/
 
 ## Roadmap
 
-- Package and install cleanly as `tradar`.
 - Improve source discovery and deduplication across noisy agent traces.
 - Add richer redaction and privacy policy controls.
 - Improve enhanced HTML report design quality.

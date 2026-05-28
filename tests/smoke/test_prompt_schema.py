@@ -15,6 +15,10 @@ from tradar.agent_runner.base import (
     ToolPolicy,
     load_prompt_asset,
 )
+from tradar.agent_runner.claude_code_adapter import (
+    ClaudeCodeAdapter,
+    ClaudeCodeSchemaRepairAdapter,
+)
 from tradar.agent_runner.codex_adapter import (
     CodexAdapter,
     CodexSchemaRepairAdapter,
@@ -63,6 +67,76 @@ def test_codex_adapter_builds_command_without_running_agent() -> None:
     assert "--output-last-message" in command
     assert "/tmp/output.json" in command
     assert command[-1] == "-"
+
+
+def test_claude_code_adapter_builds_headless_json_command_without_running_agent() -> None:
+    adapter = ClaudeCodeAdapter(claude_binary="claude")
+
+    command = adapter.build_command()
+
+    assert command == [
+        "claude",
+        "--bare",
+        "-p",
+        "--output-format",
+        "json",
+        "--no-session-persistence",
+    ]
+
+
+def test_claude_code_adapter_extracts_result_field_from_json_stdout(tmp_path, monkeypatch) -> None:
+    def fake_run(*args, **kwargs):
+        assert args[0] == [
+            "claude",
+            "--bare",
+            "-p",
+            "--output-format",
+            "json",
+            "--no-session-persistence",
+        ]
+        assert kwargs["input"]
+
+        class Result:
+            returncode = 0
+            stdout = json.dumps(
+                {
+                    "type": "result",
+                    "subtype": "success",
+                    "is_error": False,
+                    "duration_ms": 12,
+                    "result": _agent_output_json(),
+                    "session_id": "claude-session",
+                }
+            )
+            stderr = ""
+
+        return Result()
+
+    monkeypatch.setattr("tradar.agent_runner.claude_code_adapter.subprocess.run", fake_run)
+    adapter = ClaudeCodeAdapter(claude_binary="claude", timeout_seconds=7)
+
+    raw = adapter.run(
+        evidence_pack=_evidence_pack(),
+        prompt_assets=_prompt_assets(),
+        tool_policy=ToolPolicy(allow_search=True),
+        run_context=RunContext(run_id="run_claude_agent", output_dir=str(tmp_path / "run")),
+    )
+
+    assert raw.raw_text == _agent_output_json()
+    assert raw.elapsed_ms >= 0
+    assert "claude_session_id=claude-session" in raw.search_trace_summary
+    assert (tmp_path / "run" / "agent_prompt.md").exists()
+
+
+def test_claude_schema_repair_adapter_builds_command_without_running_agent() -> None:
+    prompt = _prompt_assets().schema_repair
+    adapter = ClaudeCodeSchemaRepairAdapter(prompt_asset=prompt, output_dir="/tmp/tradar")
+
+    command = adapter.build_command()
+
+    assert command[:4] == ["claude", "--bare", "-p", "--output-format"]
+    assert "json" in command
+    assert "--no-session-persistence" in command
 
 
 def test_codex_prompt_omits_raw_excerpt_from_agent_payload() -> None:

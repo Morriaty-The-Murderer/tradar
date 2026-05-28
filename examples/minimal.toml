@@ -1,0 +1,17 @@
+# Minimal first-run config.
+#
+# Start with no configured sources, then add local paths with:
+# uv run tradar init --codex-session-path ~/.codex/sessions --claude-project-path ~/.claude/projects --project-root .
+
+codex_session_paths = []
+claude_project_paths = []
+project_roots = []
+
+output_dir = "~/.local/share/tradar/runs"
+state_dir = "~/.local/share/tradar"
+
+days_window = 30
+allow_broad_root = false
+
+codex_binary = "codex"
+claude_binary = "claude"

@@ -23,13 +23,14 @@ Tradar 来自 **trace** 和 **radar** 的组合。它的目标是帮助 builder 
 
 ## 当前状态
 
-Tradar 目前是 v0.1 早期 CLI engine。它可以从源码 checkout 运行，但还没有发布到 PyPI。
+Tradar 目前是 v0.2 早期 CLI。它可以从源码 checkout 运行，可以构建本地 wheel 和 source distribution，并已准备好基于 PyPI trusted publishing 的发布自动化。
 
 ## 环境要求
 
 - Python 3.11+
 - [`uv`](https://docs.astral.sh/uv/)
 - 可选：Codex CLI，用于 `--agent codex` 或 `--render enhanced`
+- 可选：Claude Code CLI，用于 `--agent claude`
 
 ## 快速开始
 
@@ -72,6 +73,12 @@ uv run tradar generate --days 30
 uv run tradar run --days 30 --agent codex
 ```
 
+执行 scan + Claude Code analyst generation：
+
+```bash
+uv run tradar run --days 30 --agent claude
+```
+
 生成增强 HTML report：
 
 ```bash
@@ -108,6 +115,7 @@ Tradar 把 evidence processing、analyst judgment 和 presentation 分开：
 
 - `--agent base`：确定性的本地报告，不调用外部 analyst。
 - `--agent codex`：把有边界的 evidence pack 发送给 Codex analyst adapter。
+- `--agent claude`：把有边界的 evidence pack 发送给 Claude Code analyst adapter。
 - `--render base`：使用确定性的 base HTML renderer。
 - `--render enhanced`：把 base HTML 发送给 HTML design subagent；如果 required sections 缺失，会回退到 base HTML。
 
@@ -129,7 +137,7 @@ Tradar 把 evidence processing、analyst judgment 和 presentation 分开：
 - `render.log`
 - `report.html`
 
-使用 Codex adapters 时，run 目录还可能包含：
+使用外部 agent adapters 时，run 目录还可能包含：
 
 - `agent_prompt.md`
 - `agent_last_message.json`
@@ -198,7 +206,7 @@ Tradar 仍处在早期 MVP 阶段。欢迎围绕 source connectors、privacy con
 
 ```text
 tradar/
-  agent_runner/      # Codex analyst, schema repair, and HTML design adapters
+  agent_runner/      # Codex, Claude Code, schema repair, and HTML design adapters
   cli/               # Typer CLI
   config/            # Local config and defaults
   connectors/        # Codex, Claude Code, project docs, and git parsers
@@ -213,7 +221,6 @@ docs/
 
 ## Roadmap
 
-- 以 `tradar` 名称完成清晰的 packaging 和安装路径。
 - 改进 noisy agent traces 里的 source discovery 和去重。
 - 增强 redaction 和 privacy policy 控制。
 - 提升 enhanced HTML report 的设计质量。
