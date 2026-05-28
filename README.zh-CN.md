@@ -174,7 +174,7 @@ uv run ruff check .
 uv run mypy tradar
 ```
 
-可选启用 pre-push hook，在推送前自动跑同一组快速检查：
+可选启用 pre-push hook，在推送前自动跑 lint、类型检查和测试：
 
 ```bash
 git config core.hooksPath .githooks

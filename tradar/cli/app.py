@@ -50,6 +50,7 @@ from tradar.renderer.debug_bundle import apply_debug_retention, write_debug_bund
 from tradar.renderer.enhanced import (
     CodexHtmlEnhancer,
     Enhancer,
+    ProgressSink,
     RenderResult,
     render_with_optional_enhancement,
 )
@@ -1211,7 +1212,7 @@ def _html_enhancer_for_mode(
     )
 
 
-def _html_design_progress_sink(run_dir: Path):
+def _html_design_progress_sink(run_dir: Path) -> ProgressSink:
     progress_log_path = run_dir / "html_design_progress.log"
 
     def sink(message: str) -> None:
