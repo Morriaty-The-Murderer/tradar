@@ -92,10 +92,27 @@ def test_base_renderer_outputs_required_sections_and_privacy_notice() -> None:
     assert "Project Opportunity Cards" in html
     assert "Demo Briefs" in html
     assert "Decision Prompt" in html
+    assert 'data-language-button="zh"' in html
+    assert 'data-language-button="en"' in html
+    assert "运行摘要" in html
+    assert "项目机会卡" in html
     assert "本报告基于本地数据生成，未做完整脱敏" in html
+    assert "This report is generated from local data and is not fully redacted." in html
     assert "tradar accept" in html
     assert "rendered_by: base" in html
     assert "/tmp/tradar/runs/run_demo" in html
+    assert "Hi-Fi UI Preview" in html
+    assert "high-fidelity UI" in html
+    assert "高保真画面" in html
+    assert "启动 Demo" in html
+    assert "Prototype Board" not in html
+    assert "One-screen mock" not in html
+    assert "Command block highlighted." in html
+    assert "Show source doctor CTAs." in html
+    assert "Accepted demo is visible." in html
+    assert "run_id" in html
+    assert "Build a dense local HTML memo." in html
+    assert "One accepted demo." in html
     for artifact in [
         "run.json",
         "warnings.jsonl",

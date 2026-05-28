@@ -24,7 +24,11 @@ Each card should make a builder decision easier:
 - `demo_48h`: list actions that can produce a real demo within 48 hours.
 - `risks` and `kill_signals`: make abandonment conditions explicit.
 - `demo_brief`: include one-screen product shape, core interaction, required data,
-  prototype panel, 48-hour boundary, success signal, and kill signal.
+  high-fidelity UI panel, 48-hour boundary, success signal, and kill signal.
+  The schema still uses legacy names such as `prototype_panel` and
+  `one_screen_mock`; fill those fields with polished, realistic product UI
+  screen descriptions, not wireframes, skeletons, box layouts, or low-fidelity
+  mocks.
 - `credible_success_path`: include narrow user, current alternative, demand evidence,
   first distribution path, two-week validation signal, and kill signal.
 
@@ -37,6 +41,9 @@ Use these exact nested field names:
 - `demo_brief.prototype_panel`: object with `one_screen_mock`,
   `core_interaction_state`, `empty_state`, `success_state`, and
   `data_placeholders`.
+- `demo_brief.prototype_panel.one_screen_mock`: despite the legacy field name,
+  describe a high-fidelity application screen with real UI chrome, dense data
+  surfaces, controls, and states.
 - `demo_brief.boundary_48h`: single string, not a list.
 - `demo_brief.demo_success_signal`: concrete success signal.
 - `demo_brief.demo_kill_signal`: concrete kill signal.

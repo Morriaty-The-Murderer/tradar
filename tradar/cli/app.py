@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import subprocess
+import sys
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import timedelta
@@ -49,6 +50,7 @@ from tradar.renderer.debug_bundle import apply_debug_retention, write_debug_bund
 from tradar.renderer.enhanced import (
     CodexHtmlEnhancer,
     Enhancer,
+    ProgressSink,
     RenderResult,
     render_with_optional_enhancement,
 )
@@ -1206,8 +1208,20 @@ def _html_enhancer_for_mode(
     return CodexHtmlEnhancer(
         prompt_asset=assets.html_design,
         output_dir=str(run_dir),
-        timeout_seconds=config.html_design_timeout_seconds,
+        progress_sink=_html_design_progress_sink(run_dir),
     )
+
+
+def _html_design_progress_sink(run_dir: Path) -> ProgressSink:
+    progress_log_path = run_dir / "html_design_progress.log"
+
+    def sink(message: str) -> None:
+        run_dir.mkdir(parents=True, exist_ok=True)
+        with progress_log_path.open("a", encoding="utf-8") as progress_log:
+            progress_log.write(message + "\n")
+        print(message, file=sys.stderr, flush=True)
+
+    return sink
 
 
 def _render_warning_rows(warnings: list[str]) -> list[dict[str, str]]:

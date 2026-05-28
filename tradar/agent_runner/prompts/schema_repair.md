@@ -22,6 +22,10 @@ Required repair rules:
 - `demo_brief.prototype_panel` must be an object with `one_screen_mock`,
   `core_interaction_state`, `empty_state`, `success_state`, and
   `data_placeholders`; expand a string summary into those fields.
+- The `prototype_panel` and `one_screen_mock` names are legacy schema names.
+  When expanding or repairing them, preserve the source meaning but phrase the
+  content as a high-fidelity product UI screen, not a wireframe, placeholder
+  skeleton, box-and-line mock, or low-fidelity prototype.
 - `demo_brief.boundary_48h` must be a single string; join list items into one concise string.
 - Rename `success_signal` to `demo_success_signal`.
 - Rename `demo_brief.kill_signal` to `demo_kill_signal`.

@@ -78,17 +78,22 @@ def test_generate_with_invalid_enhanced_html_falls_back_to_base(tmp_path: Path) 
     assert "rendered_by: base" in html
 
 
-def test_generate_uses_configured_html_design_timeout(tmp_path: Path, monkeypatch) -> None:
+def test_generate_wires_html_design_progress_sink_without_timeout(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
     config_path = _write_config(tmp_path, html_design_timeout_seconds=14)
     config = load_config(config_path)
     scan_sources(config)
-    captured: dict[str, int] = {}
+    captured: dict[str, object] = {}
 
     class RecordingHtmlEnhancer:
-        def __init__(self, timeout_seconds: int = 300, **kwargs) -> None:
+        def __init__(self, timeout_seconds: int | None = None, **kwargs) -> None:
             captured["html_design_timeout_seconds"] = timeout_seconds
+            captured["progress_sink"] = kwargs["progress_sink"]
 
         def __call__(self, base_html: str) -> EnhancedRenderResult:
+            captured["progress_sink"]("[html-design] test progress")
             return EnhancedRenderResult(
                 html=base_html.replace("rendered_by: base", "rendered_by: enhanced"),
                 elapsed_ms=1,
@@ -99,7 +104,11 @@ def test_generate_uses_configured_html_design_timeout(tmp_path: Path, monkeypatc
 
     generate_report(config, days=30, render_mode="enhanced")
 
-    assert captured["html_design_timeout_seconds"] == 14
+    assert captured["html_design_timeout_seconds"] is None
+    assert callable(captured["progress_sink"])
+    progress_logs = list((tmp_path / "runs").glob("run_*/html_design_progress.log"))
+    assert len(progress_logs) == 1
+    assert "[html-design] test progress" in progress_logs[0].read_text(encoding="utf-8")
 
 
 def _write_config(tmp_path: Path, html_design_timeout_seconds: int | None = None) -> Path:
