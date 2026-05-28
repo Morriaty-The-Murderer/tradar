@@ -174,6 +174,12 @@ uv run ruff check .
 uv run mypy tradar
 ```
 
+可选启用 pre-push hook，在推送前自动跑同一组快速检查：
+
+```bash
+git config core.hooksPath .githooks
+```
+
 ## 文档
 
 - [使用指南](docs/usage.md)

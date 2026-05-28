@@ -193,6 +193,12 @@ uv run ruff check .
 uv run mypy tradar
 ```
 
+Enable the optional pre-push hook to run the same fast checks before pushing:
+
+```bash
+git config core.hooksPath .githooks
+```
+
 ## Documentation
 
 - [Usage guide](docs/usage.md)
