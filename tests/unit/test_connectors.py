@@ -88,6 +88,24 @@ def test_project_doc_uses_h1_as_title_and_file_path_as_source_id() -> None:
     assert "local agent-native workflow" in event.raw_text
 
 
+def test_project_doc_fixture_covers_sanitized_docs_and_notes() -> None:
+    docs_event = parse_project_doc(
+        FIXTURES / "project_docs" / "docs" / "release_checklist.md",
+        root=FIXTURES / "project_docs",
+    )
+    notes_event = parse_project_doc(
+        FIXTURES / "project_docs" / "notes" / "first_user_decision.md",
+        root=FIXTURES / "project_docs",
+    )
+
+    assert docs_event.source_id == "docs/release_checklist.md"
+    assert docs_event.title == "Release Checklist"
+    assert "sanitized fixture" in docs_event.raw_text
+    assert notes_event.source_id == "notes/first_user_decision.md"
+    assert notes_event.title == "First User Decision"
+    assert "private path" not in notes_event.raw_text
+
+
 def test_git_commit_line_parses_subject_and_date() -> None:
     event = parse_git_commit_line(
         "abc1234\t2026-05-22\tfeat(algo): add recommendation reason templates",

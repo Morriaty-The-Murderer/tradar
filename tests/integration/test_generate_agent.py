@@ -206,6 +206,7 @@ def test_generate_uses_configured_codex_adapter_timeouts(tmp_path: Path, monkeyp
         tmp_path,
         agent_timeout_seconds=11,
         schema_repair_timeout_seconds=12,
+        codex_binary="/opt/bin/codex-preview",
     )
     config = load_config(config_path)
     scan_sources(config)
@@ -213,7 +214,8 @@ def test_generate_uses_configured_codex_adapter_timeouts(tmp_path: Path, monkeyp
     captured: dict[str, int] = {}
 
     class RecordingCodexAdapter:
-        def __init__(self, timeout_seconds: int = 300) -> None:
+        def __init__(self, codex_binary: str = "codex", timeout_seconds: int = 300) -> None:
+            captured["codex_binary"] = codex_binary
             captured["agent_timeout_seconds"] = timeout_seconds
 
         def run(self, **kwargs):
@@ -223,7 +225,13 @@ def test_generate_uses_configured_codex_adapter_timeouts(tmp_path: Path, monkeyp
             )
 
     class RecordingSchemaRepairAdapter:
-        def __init__(self, timeout_seconds: int = 300, **kwargs) -> None:
+        def __init__(
+            self,
+            codex_binary: str = "codex",
+            timeout_seconds: int = 300,
+            **kwargs,
+        ) -> None:
+            captured["schema_repair_codex_binary"] = codex_binary
             captured["schema_repair_timeout_seconds"] = timeout_seconds
 
         def repair(self, raw_text: str, error_message: str) -> str:
@@ -234,8 +242,61 @@ def test_generate_uses_configured_codex_adapter_timeouts(tmp_path: Path, monkeyp
 
     generate_report(config, days=30, agent_mode="codex")
 
+    assert captured["codex_binary"] == "/opt/bin/codex-preview"
     assert captured["agent_timeout_seconds"] == 11
+    assert captured["schema_repair_codex_binary"] == "/opt/bin/codex-preview"
     assert captured["schema_repair_timeout_seconds"] == 12
+
+
+def test_generate_uses_configured_claude_code_adapter(tmp_path: Path, monkeypatch) -> None:
+    config_path = _write_config(
+        tmp_path,
+        agent_timeout_seconds=21,
+        schema_repair_timeout_seconds=22,
+        claude_binary="/opt/bin/claude-code",
+    )
+    config = load_config(config_path)
+    scan_sources(config)
+    evidence_ids = _first_evidence_ids(config.database_path, 2)
+    captured: dict[str, object] = {}
+
+    class RecordingClaudeCodeAdapter:
+        def __init__(self, claude_binary: str = "claude", timeout_seconds: int = 300) -> None:
+            captured["claude_binary"] = claude_binary
+            captured["agent_timeout_seconds"] = timeout_seconds
+
+        def run(self, **kwargs):
+            return AgentRawOutput(
+                raw_text=_agent_report_json(evidence_ids=evidence_ids),
+                elapsed_ms=1,
+            )
+
+    class RecordingClaudeCodeSchemaRepairAdapter:
+        def __init__(
+            self,
+            claude_binary: str = "claude",
+            timeout_seconds: int = 300,
+            **kwargs,
+        ) -> None:
+            captured["schema_repair_claude_binary"] = claude_binary
+            captured["schema_repair_timeout_seconds"] = timeout_seconds
+
+        def repair(self, raw_text: str, error_message: str) -> str:
+            raise AssertionError("schema repair should not be called for valid output")
+
+    monkeypatch.setattr(cli_module, "ClaudeCodeAdapter", RecordingClaudeCodeAdapter)
+    monkeypatch.setattr(
+        cli_module,
+        "ClaudeCodeSchemaRepairAdapter",
+        RecordingClaudeCodeSchemaRepairAdapter,
+    )
+
+    generate_report(config, days=30, agent_mode="claude")
+
+    assert captured["claude_binary"] == "/opt/bin/claude-code"
+    assert captured["agent_timeout_seconds"] == 21
+    assert captured["schema_repair_claude_binary"] == "/opt/bin/claude-code"
+    assert captured["schema_repair_timeout_seconds"] == 22
 
 
 def _write_config(
@@ -243,6 +304,8 @@ def _write_config(
     save_agent_raw_output: bool = True,
     agent_timeout_seconds: int | None = None,
     schema_repair_timeout_seconds: int | None = None,
+    codex_binary: str | None = None,
+    claude_binary: str | None = None,
 ) -> Path:
     config_path = tmp_path / "config.toml"
     config_path.write_text(
@@ -266,6 +329,8 @@ def _write_config(
                     if schema_repair_timeout_seconds is not None
                     else []
                 ),
+                *([f'codex_binary = "{codex_binary}"'] if codex_binary is not None else []),
+                *([f'claude_binary = "{claude_binary}"'] if claude_binary is not None else []),
             ]
         ),
         encoding="utf-8",

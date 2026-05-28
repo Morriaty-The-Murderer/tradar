@@ -82,13 +82,23 @@ def test_generate_wires_html_design_progress_sink_without_timeout(
     tmp_path: Path,
     monkeypatch,
 ) -> None:
-    config_path = _write_config(tmp_path, html_design_timeout_seconds=14)
+    config_path = _write_config(
+        tmp_path,
+        html_design_timeout_seconds=14,
+        codex_binary="/opt/bin/codex-preview",
+    )
     config = load_config(config_path)
     scan_sources(config)
     captured: dict[str, object] = {}
 
     class RecordingHtmlEnhancer:
-        def __init__(self, timeout_seconds: int | None = None, **kwargs) -> None:
+        def __init__(
+            self,
+            codex_binary: str = "codex",
+            timeout_seconds: int | None = None,
+            **kwargs,
+        ) -> None:
+            captured["codex_binary"] = codex_binary
             captured["html_design_timeout_seconds"] = timeout_seconds
             captured["progress_sink"] = kwargs["progress_sink"]
 
@@ -104,6 +114,7 @@ def test_generate_wires_html_design_progress_sink_without_timeout(
 
     generate_report(config, days=30, render_mode="enhanced")
 
+    assert captured["codex_binary"] == "/opt/bin/codex-preview"
     assert captured["html_design_timeout_seconds"] is None
     assert callable(captured["progress_sink"])
     progress_logs = list((tmp_path / "runs").glob("run_*/html_design_progress.log"))
@@ -111,7 +122,11 @@ def test_generate_wires_html_design_progress_sink_without_timeout(
     assert "[html-design] test progress" in progress_logs[0].read_text(encoding="utf-8")
 
 
-def _write_config(tmp_path: Path, html_design_timeout_seconds: int | None = None) -> Path:
+def _write_config(
+    tmp_path: Path,
+    html_design_timeout_seconds: int | None = None,
+    codex_binary: str | None = None,
+) -> Path:
     config_path = tmp_path / "config.toml"
     config_path.write_text(
         "\n".join(
@@ -128,6 +143,7 @@ def _write_config(tmp_path: Path, html_design_timeout_seconds: int | None = None
                     if html_design_timeout_seconds is not None
                     else []
                 ),
+                *([f'codex_binary = "{codex_binary}"'] if codex_binary is not None else []),
             ]
         ),
         encoding="utf-8",

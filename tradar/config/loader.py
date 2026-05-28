@@ -9,6 +9,8 @@ from typing import Any
 
 from tradar.config.defaults import (
     DEFAULT_AGENT_TIMEOUT_SECONDS,
+    DEFAULT_CLAUDE_BINARY,
+    DEFAULT_CODEX_BINARY,
     DEFAULT_DAYS_WINDOW,
     DEFAULT_DEBUG_RETENTION_RUN_COUNT,
     DEFAULT_HTML_DESIGN_TIMEOUT_SECONDS,
@@ -37,6 +39,8 @@ class RadarConfig:
     agent_timeout_seconds: int = DEFAULT_AGENT_TIMEOUT_SECONDS
     schema_repair_timeout_seconds: int = DEFAULT_SCHEMA_REPAIR_TIMEOUT_SECONDS
     html_design_timeout_seconds: int = DEFAULT_HTML_DESIGN_TIMEOUT_SECONDS
+    codex_binary: str = DEFAULT_CODEX_BINARY
+    claude_binary: str = DEFAULT_CLAUDE_BINARY
     save_agent_raw_output: bool = True
     debug_retention_run_count: int = DEFAULT_DEBUG_RETENTION_RUN_COUNT
     low_confidence_evidence_threshold: int = DEFAULT_LOW_CONFIDENCE_EVIDENCE_THRESHOLD
@@ -83,6 +87,8 @@ def load_config(config_path: Path) -> RadarConfig:
             "html_design_timeout_seconds",
             DEFAULT_HTML_DESIGN_TIMEOUT_SECONDS,
         ),
+        codex_binary=str(data.get("codex_binary") or DEFAULT_CODEX_BINARY),
+        claude_binary=str(data.get("claude_binary") or DEFAULT_CLAUDE_BINARY),
         save_agent_raw_output=bool(data.get("save_agent_raw_output", True)),
         debug_retention_run_count=_int_with_default(
             data,
@@ -121,6 +127,8 @@ def write_default_config(
         f"agent_timeout_seconds = {DEFAULT_AGENT_TIMEOUT_SECONDS}",
         f"schema_repair_timeout_seconds = {DEFAULT_SCHEMA_REPAIR_TIMEOUT_SECONDS}",
         f"html_design_timeout_seconds = {DEFAULT_HTML_DESIGN_TIMEOUT_SECONDS}",
+        f'codex_binary = "{DEFAULT_CODEX_BINARY}"',
+        f'claude_binary = "{DEFAULT_CLAUDE_BINARY}"',
         "save_agent_raw_output = true",
         f"debug_retention_run_count = {DEFAULT_DEBUG_RETENTION_RUN_COUNT}",
         f"low_confidence_evidence_threshold = {DEFAULT_LOW_CONFIDENCE_EVIDENCE_THRESHOLD}",

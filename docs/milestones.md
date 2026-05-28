@@ -17,13 +17,14 @@ Status: implemented in the current source checkout.
 
 ## v0.2: Packaging And First Public Use
 
-Status: planned.
+Status: implemented in the current source checkout.
 
 - Package and install cleanly as `tradar`.
-- Add release automation after the public repository is established.
-- Expand example configs and fixture coverage.
+- Add release automation with PyPI trusted publishing after the public repository is established.
+- Expand example configs and sanitized fixture coverage.
 - Improve CLI onboarding and first-run diagnostics.
 - Document privacy controls in more detail.
+- Configure Codex and Claude Code CLI binaries for agent-backed report modes.
 
 ## v0.3: Better Signal Quality
 

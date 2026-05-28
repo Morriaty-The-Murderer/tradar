@@ -38,6 +38,28 @@ uv run mypy tradar
 uv run tradar --help
 ```
 
+## Release Automation
+
+The release workflow builds and tests distributions on version tags matching
+`v*.*.*`. It uses PyPI trusted publishing, so no PyPI token should be stored in
+the repository.
+
+Before the first publish:
+
+1. Create the `tradar` project on PyPI.
+2. Add this GitHub repository as a trusted publisher for the `pypi` environment.
+3. Confirm the release workflow has `id-token: write` permission only in the
+   publish job.
+4. Tag the reviewed commit, for example `v0.2.0`.
+
+The workflow performs:
+
+- dependency install through `uv sync --all-groups`;
+- tests, lint, and type checks;
+- `uv build`;
+- installed CLI smoke tests from both `dist/*.whl` and `dist/*.tar.gz`;
+- `uv publish` from the tagged release job.
+
 ## Safety Checks
 
 Before pushing a branch:

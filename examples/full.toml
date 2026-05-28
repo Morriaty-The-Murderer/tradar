@@ -1,11 +1,10 @@
-# Copy this file to ~/.config/tradar/config.toml and adjust the paths.
+# Full config template with every public option.
 #
-# Do not commit your real local config if it contains private paths or output
-# locations inside sensitive projects.
+# Replace the source paths with locations on your machine before running scan.
 
 codex_session_paths = ["~/.codex/sessions"]
 claude_project_paths = ["~/.claude/projects"]
-project_roots = ["/path/to/project"]
+project_roots = ["."]
 
 output_dir = "~/.local/share/tradar/runs"
 state_dir = "~/.local/share/tradar"

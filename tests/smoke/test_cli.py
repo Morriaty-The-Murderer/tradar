@@ -71,6 +71,29 @@ def test_sources_doctor_rejects_broad_project_root(tmp_path: Path) -> None:
     assert "source.broad_root_rejected" in result.output
 
 
+def test_sources_doctor_reports_missing_config_with_init_next_action(tmp_path: Path) -> None:
+    missing_config = tmp_path / "missing-config.toml"
+
+    result = CliRunner().invoke(app, ["--config", str(missing_config), "sources", "doctor"])
+
+    assert result.exit_code == 1
+    assert "P0 config.missing" in result.output
+    assert "next_action=run_tradar_init_or_pass_--config" in result.output
+    assert str(missing_config) in result.output
+
+
+def test_run_reports_missing_config_before_scan_side_effects(tmp_path: Path) -> None:
+    missing_config = tmp_path / "missing-config.toml"
+
+    result = CliRunner().invoke(app, ["--config", str(missing_config), "run", "--days", "30"])
+
+    assert result.exit_code == 1
+    assert "P0 config.missing" in result.output
+    assert "next_action=run_tradar_init_or_pass_--config" in result.output
+    assert "scanned_evidence=" not in result.output
+    assert not (tmp_path / "state").exists()
+
+
 def test_sources_doctor_warns_when_output_dir_is_inside_repo(tmp_path: Path) -> None:
     repo = tmp_path / "repo"
     (repo / ".git").mkdir(parents=True)
@@ -355,8 +378,8 @@ def test_generate_rejects_unknown_agent_mode_with_registered_event(tmp_path: Pat
 
     assert result.exit_code == 1
     assert "config.invalid_agent_mode" in result.output
-    assert "agent must be base or codex" in result.output
-    assert "next_action=use_--agent_base_or_codex" in result.output
+    assert "agent must be base, codex, or claude" in result.output
+    assert "next_action=use_--agent_base_codex_or_claude" in result.output
 
 
 def test_run_rejects_unknown_agent_mode_before_scan_side_effects(tmp_path: Path) -> None:

@@ -16,6 +16,13 @@ class ErrorDefinition:
 
 _DEFINITIONS = [
     ErrorDefinition(
+        "RadarConfigError",
+        "config.missing",
+        "P0",
+        "配置文件不存在。",
+        True,
+    ),
+    ErrorDefinition(
         "ConnectorUnavailableError",
         "source.unreadable",
         "P0",
@@ -72,7 +79,7 @@ _DEFINITIONS = [
         "RadarConfigError",
         "config.invalid_agent_mode",
         "P1",
-        "agent must be base or codex",
+        "agent must be base, codex, or claude",
         True,
     ),
     ErrorDefinition(

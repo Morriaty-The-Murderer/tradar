@@ -23,6 +23,10 @@ from tradar.agent_runner.base import (
     ToolPolicy,
     load_prompt_asset,
 )
+from tradar.agent_runner.claude_code_adapter import (
+    ClaudeCodeAdapter,
+    ClaudeCodeSchemaRepairAdapter,
+)
 from tradar.agent_runner.codex_adapter import CodexAdapter, CodexSchemaRepairAdapter
 from tradar.agent_runner.schema_repair import (
     AgentOutputSchemaError,
@@ -137,12 +141,7 @@ def init_command(
 
 @sources_app.command("doctor")
 def sources_doctor_command() -> None:
-    try:
-        config = load_config(_config_path())
-    except FileNotFoundError as exc:
-        typer.echo(f"P0 source.unreadable {exc}")
-        raise typer.Exit(1) from exc
-
+    config = _load_config_or_exit()
     issues = doctor_config(config)
     _print_doctor_issues(issues)
     if any(issue.severity == "P0" for issue in issues):
@@ -151,7 +150,7 @@ def sources_doctor_command() -> None:
 
 @app.command("scan")
 def scan_command(ctx: typer.Context) -> None:
-    config = load_config(_config_path())
+    config = _load_config_or_exit()
     issues = doctor_config(config)
     p0_issues = [issue for issue in issues if issue.severity == "P0"]
     blocking_p0_issues = [issue for issue in p0_issues if not _scan_can_skip_issue(issue)]
@@ -178,7 +177,7 @@ def generate_command(
     agent: str = typer.Option("base", "--agent", help="base 或 codex。"),
     render: str = typer.Option("base", "--render", help="base 或 enhanced。"),
 ) -> None:
-    config = load_config(_config_path())
+    config = _load_config_or_exit()
     try:
         agent_mode = _require_agent_mode(agent)
         render_mode = _require_render_mode(render)
@@ -208,7 +207,7 @@ def run_command(
     agent: str = typer.Option("base", "--agent", help="base 或 codex。"),
     render: str = typer.Option("base", "--render", help="base 或 enhanced。"),
 ) -> None:
-    config = load_config(_config_path())
+    config = _load_config_or_exit()
     try:
         agent_mode = _require_agent_mode(agent)
         render_mode = _require_render_mode(render)
@@ -1174,7 +1173,15 @@ def _agent_adapter_for_mode(
     if agent_adapter is not None:
         return agent_adapter
     if agent_mode == "codex":
-        return CodexAdapter(timeout_seconds=config.agent_timeout_seconds)
+        return CodexAdapter(
+            codex_binary=config.codex_binary,
+            timeout_seconds=config.agent_timeout_seconds,
+        )
+    if agent_mode == "claude":
+        return ClaudeCodeAdapter(
+            claude_binary=config.claude_binary,
+            timeout_seconds=config.agent_timeout_seconds,
+        )
     raise ValueError("unknown agent mode: " + agent_mode)
 
 
@@ -1188,6 +1195,14 @@ def _schema_repair_adapter_for_mode(
         return CodexSchemaRepairAdapter(
             prompt_asset=prompt_assets.schema_repair,
             output_dir=run_context.output_dir,
+            codex_binary=config.codex_binary,
+            timeout_seconds=config.schema_repair_timeout_seconds,
+        )
+    if agent_mode == "claude":
+        return ClaudeCodeSchemaRepairAdapter(
+            prompt_asset=prompt_assets.schema_repair,
+            output_dir=run_context.output_dir,
+            claude_binary=config.claude_binary,
             timeout_seconds=config.schema_repair_timeout_seconds,
         )
     return None
@@ -1208,6 +1223,7 @@ def _html_enhancer_for_mode(
     return CodexHtmlEnhancer(
         prompt_asset=assets.html_design,
         output_dir=str(run_dir),
+        codex_binary=config.codex_binary,
         progress_sink=_html_design_progress_sink(run_dir),
     )
 
@@ -1254,8 +1270,8 @@ def _render_log(render_result: RenderResult) -> str:
 
 
 def _require_agent_mode(agent_mode: str) -> str:
-    if agent_mode not in {"base", "codex"}:
-        raise CliUsageError("config.invalid_agent_mode", "use_--agent_base_or_codex")
+    if agent_mode not in {"base", "codex", "claude"}:
+        raise CliUsageError("config.invalid_agent_mode", "use_--agent_base_codex_or_claude")
     return agent_mode
 
 
@@ -1314,7 +1330,7 @@ def _new_run_id() -> str:
 
 
 def _save_decision(card_id: str, decision: str) -> None:
-    config = load_config(_config_path())
+    config = _load_config_or_exit()
     known_card_ids = _known_card_ids_from_reports(config.output_dir)
     if card_id not in known_card_ids:
         definition = get_event_definition("decision.unknown_card_id")
@@ -1390,6 +1406,22 @@ def _print_doctor_issues(issues: Iterable[DoctorIssue]) -> None:
 
 def _config_path() -> Path:
     return _CLI_STATE["config_path"]
+
+
+def _load_config_or_exit() -> RadarConfig:
+    try:
+        return load_config(_config_path())
+    except FileNotFoundError as exc:
+        _print_config_missing_error(_config_path())
+        raise typer.Exit(1) from exc
+
+
+def _print_config_missing_error(config_path: Path) -> None:
+    definition = get_event_definition("config.missing")
+    typer.echo(
+        f"{definition.severity} {definition.event} {definition.default_user_message} "
+        f"path={config_path} next_action=run_tradar_init_or_pass_--config"
+    )
 
 
 def _privacy_gate_from_context(ctx: typer.Context) -> PrivacyGateProtocol:

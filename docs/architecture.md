@@ -49,7 +49,8 @@ Optional enhanced HTML renderer
 - The evidence store is local SQLite under `~/.local/share/tradar/` by default.
 - The evidence pack builder enforces source quotas and token budgets before any analyst adapter sees evidence.
 - The base renderer is deterministic and does not call external agents.
-- The optional Codex analyst and enhanced HTML adapters are explicit opt-in paths.
+- The optional Codex analyst, Claude Code analyst, and enhanced HTML adapters
+  are explicit opt-in paths.
 
 ## Trust Model
 
