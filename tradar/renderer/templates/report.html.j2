@@ -1,381 +1,666 @@
 <!doctype html>
-<html lang="zh-CN" data-language="zh">
+<html lang="zh-CN" data-language="zh" data-accent="safety-orange">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Tradar - {{ report.run_summary.run_id }}</title>
   <style>
     :root {
-      --bg: #f4f6f8;
-      --surface: #ffffff;
-      --surface-muted: #f8fafc;
-      --ink: #111827;
-      --muted: #4b5563;
-      --line: #d7dde6;
-      --line-strong: #aeb8c7;
-      --accent: #2563eb;
-      --success: #0f766e;
-      --warning: #b45309;
-      --danger: #b91c1c;
-      --shadow: 0 16px 40px rgba(17, 24, 39, 0.08);
+      /* Guizang Social Card / Swiss International / Safety Orange */
+      --paper: #fafaf8;
+      --ink: #0a0a0a;
+      --grey-1: #f0f0ee;
+      --grey-2: #d4d4d2;
+      --grey-3: #737373;
+      --accent: #FF6B35;
+      --accent-on: #ffffff;
+      --sp-2: 6px;
+      --sp-3: 8px;
+      --sp-4: 12px;
+      --sp-5: 16px;
+      --sp-6: 24px;
+      --sp-7: 32px;
+      --sp-8: 40px;
+      --sp-9: 48px;
+      --sp-10: 64px;
+      --sans: Inter, "Helvetica Neue", Helvetica, "Noto Sans SC", -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei UI", sans-serif;
+      --mono: "IBM Plex Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace;
     }
-    * { box-sizing: border-box; }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { background: var(--paper); }
     body {
       margin: 0;
       color: var(--ink);
-      background:
-        linear-gradient(180deg, #ffffff 0, var(--bg) 360px, var(--bg) 100%);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--paper);
+      font-family: var(--sans);
       line-height: 1.5;
+      letter-spacing: 0;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: geometricPrecision;
     }
-    main { max-width: 1180px; margin: 0 auto; padding: 24px; }
-    section { margin: 0 0 24px; }
-    h1, h2, h3, h4, p { margin-top: 0; }
-    h1 { font-size: clamp(2rem, 5vw, 4rem); line-height: 0.96; letter-spacing: 0; margin-bottom: 18px; }
-    h2 { font-size: 1.35rem; line-height: 1.2; margin-bottom: 14px; }
-    h3 { font-size: 1rem; margin-bottom: 8px; }
-    h4 { font-size: 0.8rem; margin: 14px 0 6px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
-    a { color: var(--accent); }
-    a:focus-visible, .command:focus-visible { outline: 3px solid rgba(37, 99, 235, 0.35); outline-offset: 3px; }
-    ul, ol { padding-left: 20px; margin: 8px 0 0; }
-    li + li { margin-top: 4px; }
-    .eyebrow, .label, .mono {
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-      font-size: 0.78rem;
+    a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 4px; }
+    a:focus-visible, button:focus-visible, .command:focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 3px;
     }
-    .eyebrow {
-      color: var(--accent);
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
+    h1, h2, h3, h4, p, ul, ol { margin-top: 0; }
+    ul, ol { padding-left: 1.15rem; margin-bottom: 0; }
+    li + li { margin-top: var(--sp-2); }
+    code, .mono, .t-meta, .command, .command-label, .metric-label, .eyebrow {
+      font-family: var(--mono);
     }
-    .muted { color: var(--muted); }
     .i18n-en { display: none; }
     html[data-language="en"] .i18n-zh { display: none; }
     html[data-language="en"] .i18n-en { display: inline; }
-    .language-switch {
+    .muted { color: var(--grey-3); }
+    .guizang-swiss-report {
+      width: min(1360px, 100%);
+      margin: 0 auto;
+      padding: var(--sp-7) var(--sp-6) var(--sp-10);
+    }
+    .swiss-topbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: var(--sp-6);
+      align-items: end;
+      border-bottom: 1px solid var(--grey-2);
+      padding-bottom: var(--sp-4);
+      margin-bottom: var(--sp-5);
+    }
+    .brand-lockup {
       display: flex;
-      justify-content: flex-end;
-      gap: 6px;
-      margin-bottom: 10px;
+      gap: var(--sp-4);
+      align-items: baseline;
+      min-width: 0;
+    }
+    .brand-mark {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 42px;
+      height: 42px;
+      background: var(--accent);
+      color: var(--accent-on);
+      font-weight: 700;
+      flex: 0 0 auto;
+    }
+    .brand-copy strong {
+      display: block;
+      font-size: 1rem;
+      line-height: 1.1;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .brand-copy span {
+      display: block;
+      margin-top: 4px;
+      color: var(--grey-3);
+      font-size: .82rem;
+    }
+    .language-switch {
+      display: inline-flex;
+      border: 1px solid var(--ink);
     }
     .language-switch button {
-      border: 1px solid var(--line-strong);
-      border-radius: 8px;
-      background: var(--surface);
-      color: var(--muted);
-      min-height: 32px;
-      padding: 4px 10px;
+      min-height: 34px;
+      border: 0;
+      border-right: 1px solid var(--ink);
+      padding: 0 12px;
+      background: var(--paper);
+      color: var(--ink);
       font: inherit;
       cursor: pointer;
     }
+    .language-switch button:last-child { border-right: 0; }
     .language-switch button[aria-pressed="true"] {
-      color: var(--accent);
-      border-color: rgba(37, 99, 235, 0.45);
-      background: #eff6ff;
-      font-weight: 700;
+      background: var(--ink);
+      color: var(--paper);
     }
-    .notice {
-      color: #5f4600;
-      background: #fff8db;
-      border: 1px solid #ead48a;
-      padding: 10px 12px;
-      border-radius: 8px;
-      margin-bottom: 16px;
-    }
-    .report-hero {
-      display: grid;
-      grid-template-columns: minmax(0, 1.25fr) minmax(300px, 0.75fr);
-      gap: 18px;
-      align-items: stretch;
-      margin-bottom: 18px;
-    }
-    .hero-copy, .hero-panel, .section-panel {
-      background: rgba(255, 255, 255, 0.92);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      box-shadow: var(--shadow);
-    }
-    .hero-copy { padding: 24px; }
-    .hero-panel { padding: 18px; }
-    .hero-summary {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px;
-      margin-top: 18px;
-    }
-    .metric {
-      background: var(--surface-muted);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 10px;
-      min-width: 0;
-    }
-    .metric strong { display: block; margin-top: 3px; overflow-wrap: anywhere; }
-    .section-panel { padding: 18px; }
-    .section-title {
+    .privacy-band {
       display: flex;
       justify-content: space-between;
-      gap: 16px;
-      align-items: end;
-      border-bottom: 1px solid var(--line);
-      padding-bottom: 10px;
-      margin-bottom: 14px;
+      gap: var(--sp-5);
+      border-bottom: 1px solid var(--grey-2);
+      padding: var(--sp-4) 0 var(--sp-5);
+      margin-bottom: var(--sp-7);
+      color: var(--grey-3);
+      font-size: .88rem;
     }
-    .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-    .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 14px;
+    .report-nav {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      border: 1px solid var(--ink);
+      margin-bottom: var(--sp-7);
+    }
+    .report-nav a {
+      padding: var(--sp-4) var(--sp-5);
+      border-right: 1px solid var(--ink);
+      color: var(--ink);
+      text-decoration: none;
+      font-size: .88rem;
+      font-weight: 600;
+    }
+    .report-nav a:last-child { border-right: 0; }
+    .report-nav a.primary {
+      background: var(--accent);
+      color: var(--accent-on);
+    }
+    .swiss-hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(360px, .95fr);
+      gap: var(--sp-7);
+      margin-bottom: var(--sp-10);
+    }
+    .hero-statement, .weekly-module {
+      border-top: 6px solid var(--accent);
+      border-bottom: 1px solid var(--grey-2);
+      padding: var(--sp-7) 0 var(--sp-6);
       min-width: 0;
     }
-    .card + .card { margin-top: 12px; }
+    .eyebrow {
+      margin-bottom: var(--sp-5);
+      color: var(--accent);
+      font-size: .76rem;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    h1 {
+      margin-bottom: var(--sp-6);
+      font-size: clamp(4.8rem, 10vw, 8.6rem);
+      line-height: .96;
+      font-weight: 200;
+      letter-spacing: 0;
+    }
+    h2 {
+      margin-bottom: var(--sp-4);
+      font-size: clamp(2.1rem, 4vw, 4rem);
+      line-height: 1.02;
+      font-weight: 300;
+      letter-spacing: 0;
+    }
+    h3 {
+      margin-bottom: var(--sp-3);
+      font-size: 1.22rem;
+      line-height: 1.2;
+      font-weight: 500;
+      letter-spacing: 0;
+    }
+    h4 {
+      margin: var(--sp-5) 0 var(--sp-3);
+      color: var(--grey-3);
+      font-family: var(--mono);
+      font-size: .74rem;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .hero-lead {
+      max-width: 780px;
+      margin-bottom: var(--sp-6);
+      font-size: 1.16rem;
+      line-height: 1.65;
+    }
+    .confidence-note {
+      display: grid;
+      grid-template-columns: 120px minmax(0, 1fr);
+      gap: var(--sp-5);
+      border-top: 1px solid var(--grey-2);
+      padding-top: var(--sp-5);
+      color: var(--grey-3);
+    }
+    .hero-metrics {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+      border-top: 1px solid var(--ink);
+      border-bottom: 1px solid var(--ink);
+    }
+    .hero-metrics .metric-tile { grid-column: span 1; }
+    .hero-metrics .metric-tile.metric-wide { grid-column: span 2; }
+    .metric-tile {
+      min-width: 0;
+      padding: var(--sp-5);
+      border-right: 1px solid var(--grey-2);
+      background: var(--paper);
+    }
+    .metric-tile:last-child { border-right: 0; }
+    .metric-label {
+      display: block;
+      color: var(--grey-3);
+      font-size: .72rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .metric-tile strong {
+      display: block;
+      margin-top: var(--sp-3);
+      overflow-wrap: anywhere;
+      font-size: 1rem;
+      line-height: 1.35;
+      font-weight: 500;
+    }
+    .weekly-module {
+      display: grid;
+      align-content: start;
+      gap: var(--sp-5);
+      background: var(--grey-1);
+      padding: var(--sp-7);
+    }
     .status-line {
       display: flex;
       flex-wrap: wrap;
-      gap: 6px;
+      gap: var(--sp-3);
       align-items: center;
-      color: var(--muted);
-      margin-bottom: 8px;
+      color: var(--grey-3);
     }
     .pill {
       display: inline-flex;
       align-items: center;
-      min-height: 24px;
-      border: 1px solid var(--line-strong);
-      border-radius: 999px;
+      min-height: 26px;
+      border: 1px solid var(--grey-2);
       padding: 2px 8px;
-      background: var(--surface-muted);
-      color: var(--muted);
-      font-size: 0.78rem;
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      background: var(--paper);
+      color: var(--grey-3);
+      font-family: var(--mono);
+      font-size: .72rem;
+      overflow-wrap: anywhere;
     }
-    .pill-accent { color: var(--accent); border-color: rgba(37, 99, 235, 0.35); background: #eff6ff; }
-    .command-stack { display: grid; gap: 8px; margin-top: 12px; }
+    .pill-accent {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: var(--accent-on);
+    }
+    .swiss-section {
+      border-top: 1px solid var(--ink);
+      padding-top: var(--sp-6);
+      margin-bottom: var(--sp-10);
+    }
+    .section-heading {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: var(--sp-6);
+      align-items: end;
+      margin-bottom: var(--sp-7);
+    }
+    .section-heading h2 { margin-bottom: 0; }
+    .panel-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      border-top: 1px solid var(--grey-2);
+      border-left: 1px solid var(--grey-2);
+    }
+    .panel-grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      border-top: 1px solid var(--grey-2);
+      border-left: 1px solid var(--grey-2);
+    }
+    .swiss-panel, .matrix-cell, .state-cell {
+      min-width: 0;
+      padding: var(--sp-6);
+      border-right: 1px solid var(--grey-2);
+      border-bottom: 1px solid var(--grey-2);
+      background: var(--paper);
+    }
+    .swiss-panel.alt, .matrix-cell.alt, .state-cell.alt { background: var(--grey-1); }
+    .swiss-panel.accent, .matrix-cell.accent {
+      background: var(--accent);
+      color: var(--accent-on);
+    }
+    .swiss-panel.accent h3, .swiss-panel.accent h4, .swiss-panel.accent p,
+    .matrix-cell.accent h4, .matrix-cell.accent p, .matrix-cell.accent li {
+      color: var(--accent-on);
+    }
+    .technical-appendix {
+      border-top: 1px solid var(--ink);
+      margin-bottom: var(--sp-10);
+    }
+    .technical-appendix summary {
+      display: flex;
+      justify-content: space-between;
+      gap: var(--sp-6);
+      padding: var(--sp-5) 0;
+      color: var(--grey-3);
+      cursor: pointer;
+      list-style: none;
+    }
+    .technical-appendix summary::-webkit-details-marker { display: none; }
+    .technical-appendix summary strong {
+      color: var(--ink);
+      font-size: 1rem;
+    }
+    .source-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0;
+      border-top: 1px solid var(--grey-2);
+      border-left: 1px solid var(--grey-2);
+      margin-top: var(--sp-6);
+    }
+    .source-metrics .metric-tile {
+      border-bottom: 1px solid var(--grey-2);
+      background: var(--grey-1);
+    }
+    .artifact-list {
+      columns: 2;
+      column-gap: var(--sp-8);
+    }
+    .opportunity-ledger {
+      display: grid;
+      grid-template-columns: 184px minmax(0, 1fr);
+      gap: var(--sp-7);
+      border-top: 1px solid var(--grey-2);
+      padding: var(--sp-7) 0;
+    }
+    .opportunity-ledger:last-child { border-bottom: 1px solid var(--grey-2); }
+    .recommended-project {
+      border-top: 1px solid var(--grey-2);
+      margin-bottom: var(--sp-8);
+    }
+    .candidate-heading {
+      display: flex;
+      justify-content: space-between;
+      gap: var(--sp-5);
+      align-items: end;
+      border-top: 1px solid var(--ink);
+      padding-top: var(--sp-6);
+      margin: var(--sp-9) 0 0;
+    }
+    .ledger-index {
+      display: flex;
+      flex-direction: column;
+      gap: var(--sp-4);
+      min-width: 0;
+    }
+    .ledger-index .number {
+      display: block;
+      color: var(--accent);
+      font-size: clamp(3rem, 6vw, 5.4rem);
+      line-height: .9;
+      font-weight: 200;
+    }
+    .ledger-main {
+      display: grid;
+      grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+      gap: var(--sp-7);
+      min-width: 0;
+    }
+    .opportunity-title { margin-bottom: var(--sp-4); }
+    .evidence-list li::marker { color: var(--accent); }
+    .swiss-matrix {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      border-top: 1px solid var(--grey-2);
+      border-left: 1px solid var(--grey-2);
+    }
+    .demo-atelier-item {
+      border-top: 1px solid var(--grey-2);
+      padding-top: var(--sp-7);
+      margin-bottom: var(--sp-9);
+    }
+    .brief-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--sp-7);
+      margin-bottom: var(--sp-7);
+    }
+    .product-frame {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(300px, .8fr);
+      gap: var(--sp-7);
+      align-items: stretch;
+    }
+    .product-ui-screen {
+      display: grid;
+      grid-template-columns: 160px minmax(0, 1fr);
+      min-height: 520px;
+      border: 1px solid var(--ink);
+      background: var(--paper);
+    }
+    .product-ui-rail {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: var(--sp-6);
+      padding: var(--sp-6);
+      background: var(--ink);
+      color: var(--paper);
+    }
+    .product-ui-logo {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 42px;
+      height: 42px;
+      background: var(--accent);
+      color: var(--accent-on);
+      font-weight: 700;
+    }
+    .product-ui-nav {
+      display: grid;
+      gap: var(--sp-3);
+      align-content: start;
+    }
+    .product-ui-nav span {
+      display: block;
+      border-left: 3px solid transparent;
+      padding: var(--sp-3) 0 var(--sp-3) var(--sp-4);
+      color: var(--grey-2);
+      font-size: .82rem;
+    }
+    .product-ui-nav span.active {
+      border-left-color: var(--accent);
+      color: var(--paper);
+    }
+    .product-ui-main {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      min-width: 0;
+    }
+    .product-ui-toolbar {
+      display: flex;
+      justify-content: space-between;
+      gap: var(--sp-5);
+      align-items: start;
+      padding: var(--sp-6);
+      border-bottom: 1px solid var(--grey-2);
+    }
+    .product-ui-action {
+      flex: 0 0 auto;
+      background: var(--accent);
+      color: var(--accent-on);
+      padding: var(--sp-3) var(--sp-5);
+      font-size: .84rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .product-ui-workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 260px;
+      gap: 0;
+      min-width: 0;
+    }
+    .product-ui-list {
+      display: grid;
+      align-content: start;
+      border-right: 1px solid var(--grey-2);
+      min-width: 0;
+    }
+    .product-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: var(--sp-5);
+      align-items: center;
+      padding: var(--sp-5) var(--sp-6);
+      border-bottom: 1px solid var(--grey-2);
+      min-width: 0;
+    }
+    .product-row strong, .product-row span { overflow-wrap: anywhere; }
+    .product-chip {
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 2px 8px;
+      font-family: var(--mono);
+      font-size: .72rem;
+      white-space: nowrap;
+    }
+    .product-ui-inspector {
+      display: grid;
+      align-content: start;
+      gap: var(--sp-5);
+      padding: var(--sp-6);
+      background: var(--grey-1);
+      min-width: 0;
+    }
+    .product-data-list {
+      display: grid;
+      gap: var(--sp-3);
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .product-data-list li {
+      border-bottom: 1px solid var(--grey-2);
+      padding-bottom: var(--sp-3);
+      overflow-wrap: anywhere;
+    }
+    .state-grid, .path-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      border-top: 1px solid var(--grey-2);
+      border-left: 1px solid var(--grey-2);
+      margin-top: var(--sp-5);
+    }
+    .path-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      margin-top: var(--sp-6);
+    }
+    .command-stack {
+      display: grid;
+      gap: var(--sp-4);
+    }
     .command-row {
       display: grid;
-      grid-template-columns: 88px minmax(0, 1fr);
-      gap: 8px;
+      grid-template-columns: 112px minmax(0, 1fr);
       align-items: stretch;
+      border: 1px solid var(--ink);
     }
     .command-label {
       display: flex;
       align-items: center;
-      color: var(--muted);
-      background: var(--surface-muted);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 8px;
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-      font-size: 0.76rem;
+      padding: var(--sp-4);
+      background: var(--ink);
+      color: var(--paper);
+      font-size: .72rem;
+      font-weight: 600;
+      letter-spacing: .08em;
       text-transform: uppercase;
     }
     .command {
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-      background: #0f172a;
-      color: #f8fafc;
-      padding: 9px 10px;
-      border-radius: 8px;
+      min-width: 0;
+      padding: var(--sp-4);
+      background: var(--paper);
+      color: var(--ink);
       overflow-wrap: anywhere;
       white-space: normal;
     }
-    .opportunity-grid {
+    .decision-grid {
       display: grid;
-      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
-      gap: 14px;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: var(--sp-7);
+      margin-top: var(--sp-7);
     }
-    .evidence-list li::marker { color: var(--accent); }
-    .hifi-board {
-      display: grid;
-      grid-template-columns: minmax(0, 1.1fr) minmax(260px, 0.9fr);
-      gap: 12px;
-      margin-top: 10px;
+    .action-copy {
+      max-width: 760px;
+      margin-bottom: var(--sp-6);
+      color: var(--grey-3);
+      font-size: 1.05rem;
     }
-    .hifi-stage {
-      min-height: 320px;
-      background: #eef2f7;
-      border: 1px solid var(--line-strong);
-      border-radius: 8px;
-      padding: 12px;
-      display: grid;
-      align-content: stretch;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
-    }
-    .hifi-screen {
-      display: grid;
-      grid-template-columns: 128px minmax(0, 1fr);
-      min-height: 296px;
-      overflow: hidden;
-      background: var(--surface);
-      border: 1px solid #cbd5e1;
-      border-radius: 8px;
-      box-shadow: 0 18px 34px rgba(15, 23, 42, 0.16);
-    }
-    .hifi-sidebar {
-      background: #111827;
-      color: #e5e7eb;
-      padding: 14px 12px;
-    }
-    .hifi-logo {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 34px;
-      height: 34px;
-      border-radius: 8px;
-      background: #2563eb;
-      color: #ffffff;
-      font-weight: 800;
-      margin-bottom: 16px;
-    }
-    .hifi-nav-item {
-      border-radius: 8px;
-      padding: 7px 8px;
-      margin-bottom: 6px;
-      color: #cbd5e1;
-      font-size: 0.8rem;
-    }
-    .hifi-nav-item.active {
-      background: rgba(37, 99, 235, 0.28);
-      color: #ffffff;
-    }
-    .hifi-content {
-      display: grid;
-      grid-template-rows: auto auto 1fr;
-      gap: 10px;
-      padding: 14px;
-      min-width: 0;
-    }
-    .hifi-toolbar {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      align-items: center;
-      padding-bottom: 10px;
-      border-bottom: 1px solid var(--line);
-    }
-    .hifi-primary-action {
-      border-radius: 8px;
-      background: var(--accent);
-      color: #ffffff;
-      padding: 7px 10px;
-      font-size: 0.78rem;
-      font-weight: 700;
-      white-space: nowrap;
-    }
-    .hifi-workspace {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) 180px;
-      gap: 10px;
-      min-width: 0;
-    }
-    .hifi-table, .hifi-detail {
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: var(--surface-muted);
-      padding: 10px;
-      min-width: 0;
-    }
-    .hifi-row {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 10px;
-      align-items: center;
-      padding: 8px 0;
-      border-bottom: 1px solid var(--line);
-    }
-    .hifi-row:last-child { border-bottom: 0; }
-    .hifi-row strong, .hifi-detail strong { overflow-wrap: anywhere; }
-    .hifi-chip {
-      border-radius: 999px;
-      background: #dbeafe;
-      color: #1d4ed8;
-      padding: 2px 7px;
-      font-size: 0.72rem;
-      white-space: nowrap;
-    }
-    .hifi-empty-success {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px;
-    }
-    .state-strip {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px;
-    }
-    .state-box {
-      border-left: 3px solid var(--line-strong);
-      background: var(--surface-muted);
-      padding: 9px;
-      border-radius: 8px;
-    }
-    .state-box.success { border-left-color: var(--success); }
-    .state-box.empty { border-left-color: var(--warning); }
-    .path-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 8px;
-      margin-top: 10px;
-    }
-    .artifact-list {
-      columns: 2;
-      column-gap: 24px;
-    }
-    @media (max-width: 920px) {
-      main { padding: 16px; }
-      .report-hero, .opportunity-grid, .hifi-board, .grid-2, .grid-3, .path-grid, .hifi-workspace {
+    @media (max-width: 980px) {
+      .guizang-swiss-report { padding: var(--sp-5) var(--sp-5) var(--sp-8); }
+      .swiss-topbar, .privacy-band, .swiss-hero, .section-heading,
+      .ledger-main, .brief-grid, .product-frame, .decision-grid {
         grid-template-columns: 1fr;
       }
-      .hifi-screen { grid-template-columns: 1fr; }
-      .hifi-sidebar { display: none; }
-      .hifi-empty-success { grid-template-columns: 1fr; }
-      .hero-summary { grid-template-columns: 1fr; }
+      .report-nav { grid-template-columns: 1fr; }
+      .report-nav a { border-right: 0; border-bottom: 1px solid var(--ink); }
+      .report-nav a:last-child { border-bottom: 0; }
+      .privacy-band { display: grid; }
+      .hero-metrics, .panel-grid-3, .panel-grid-2, .source-metrics,
+      .swiss-matrix, .state-grid, .path-grid {
+        grid-template-columns: 1fr;
+      }
+      .metric-tile, .swiss-panel, .matrix-cell, .state-cell {
+        border-right: 1px solid var(--grey-2);
+      }
+      .hero-metrics .metric-tile,
+      .hero-metrics .metric-tile.metric-wide {
+        grid-column: auto;
+      }
+      .opportunity-ledger { grid-template-columns: 1fr; }
+      .product-ui-screen { grid-template-columns: 1fr; }
+      .product-ui-rail { display: none; }
+      .product-ui-workspace { grid-template-columns: 1fr; }
+      .product-ui-list { border-right: 0; }
       .command-row { grid-template-columns: 1fr; }
       .artifact-list { columns: 1; }
+      h1 { font-size: clamp(3.5rem, 18vw, 6rem); }
     }
   </style>
 </head>
 <body>
-<main>
-  <nav class="language-switch" aria-label="Language">
-    <button type="button" data-language-button="zh" aria-pressed="true">中文</button>
-    <button type="button" data-language-button="en" aria-pressed="false">English</button>
+<main class="guizang-swiss-report">
+  <nav class="swiss-topbar" aria-label="Language">
+    <div class="brand-lockup">
+      <span class="brand-mark">T</span>
+      <span class="brand-copy">
+        <strong>Tradar / Local Agent Opportunity Radar</strong>
+        <span>rendered_by: {{ report.run_summary.rendered_by }}</span>
+      </span>
+    </div>
+    <div class="language-switch">
+      <button type="button" data-language-button="zh" aria-pressed="true">中文</button>
+      <button type="button" data-language-button="en" aria-pressed="false">English</button>
+    </div>
   </nav>
-  <p class="notice"><span class="i18n-zh">本报告基于本地数据生成，未做完整脱敏。</span><span class="i18n-en">This report is generated from local data and is not fully redacted.</span> rendered_by: {{ report.run_summary.rendered_by }}</p>
 
-  <header class="report-hero" aria-labelledby="run-summary">
-    <div class="hero-copy">
-      <p class="eyebrow">Tradar Weekly Radar</p>
+  <p class="privacy-band">
+    <span><span class="i18n-zh">本报告基于本地数据生成，未做完整脱敏。</span><span class="i18n-en">This report is generated from local data and is not fully redacted.</span></span>
+    <span class="t-meta">Safety Orange / Swiss International</span>
+  </p>
+
+  <nav class="report-nav" aria-label="Report sections">
+    <a class="primary" href="#recommended-project"><span class="i18n-zh">首选项目</span><span class="i18n-en">Recommended</span></a>
+    <a href="#candidate-projects"><span class="i18n-zh">待考察项目</span><span class="i18n-en">Candidates</span></a>
+    <a href="#demo-briefs"><span class="i18n-zh">Demo 简报</span><span class="i18n-en">Demo Briefs</span></a>
+    <a href="#next-action"><span class="i18n-zh">下一步</span><span class="i18n-en">Next Action</span></a>
+    <a href="#technical-appendix"><span class="i18n-zh">技术附录</span><span class="i18n-en">Technical</span></a>
+  </nav>
+
+  <header class="swiss-hero" aria-labelledby="run-summary">
+    <div class="hero-statement">
+      <p class="eyebrow">Tradar Decision Radar</p>
       <h1 id="run-summary"><span class="i18n-zh">运行摘要</span><span class="i18n-en">Run Summary</span></h1>
       {% if report.this_weeks_demo %}
-        <p>{{ report.this_weeks_demo.summary }}</p>
+        <p class="hero-lead">{{ report.this_weeks_demo.summary }}</p>
       {% else %}
-        <p><span class="i18n-zh">本周不建议启动 demo。先补充 evidence 或运行 sources doctor。</span><span class="i18n-en">No demo is recommended this week. Add evidence or run sources doctor first.</span></p>
+        <p class="hero-lead"><span class="i18n-zh">本周不建议启动 demo。先补充 evidence 或运行 sources doctor。</span><span class="i18n-en">No demo is recommended this week. Add evidence or run sources doctor first.</span></p>
       {% endif %}
       {% if report.run_summary.confidence_note %}
-        <h2><span class="i18n-zh">置信度</span><span class="i18n-en">Confidence</span></h2>
-        <p class="muted">{{ report.run_summary.confidence_note }}</p>
+        <div class="confidence-note">
+          <span class="metric-label"><span class="i18n-zh">置信度</span><span class="i18n-en">Confidence</span></span>
+          <span>{{ report.run_summary.confidence_note }}</span>
+        </div>
       {% endif %}
-      <div class="hero-summary" aria-label="run metrics">
-        <div class="metric"><span class="label">run_id</span><strong>{{ report.run_summary.run_id }}</strong></div>
-        <div class="metric"><span class="label"><span class="i18n-zh">生成时间</span><span class="i18n-en">generated_at</span></span><strong>{{ report.run_summary.generated_at.isoformat() }}</strong></div>
-        <div class="metric"><span class="label"><span class="i18n-zh">窗口天数</span><span class="i18n-en">days_window</span></span><strong>{{ report.run_summary.days_window }}</strong></div>
-        <div class="metric"><span class="label"><span class="i18n-zh">证据数量</span><span class="i18n-en">evidence_count</span></span><strong>{{ report.run_summary.evidence_count }}</strong></div>
-        <div class="metric"><span class="label"><span class="i18n-zh">告警数量</span><span class="i18n-en">warning_count</span></span><strong>{{ report.run_summary.warning_count }}</strong></div>
-        <div class="metric"><span class="label"><span class="i18n-zh">报告状态</span><span class="i18n-en">Report Status</span></span><strong>{{ report.run_summary.report_status }}</strong></div>
-      </div>
     </div>
 
-    <aside class="hero-panel" aria-label="this week decision">
+    <aside class="weekly-module" aria-labelledby="this-weeks-demo">
       <p class="eyebrow"><span class="i18n-zh">本周 Demo</span><span class="i18n-en">This Week's Demo</span></p>
       {% if report.this_weeks_demo %}
         <h2 id="this-weeks-demo">{{ report.this_weeks_demo.title }}</h2>
         <p>{{ report.this_weeks_demo.summary }}</p>
         <div class="status-line">
-          <span class="pill pill-accent">card_id: {{ report.this_weeks_demo.card_id }}</span>
+          <span class="pill pill-accent"><span class="i18n-zh">首选实施</span><span class="i18n-en">recommended</span></span>
           <span class="pill">evidence_strength: {{ report.this_weeks_demo.evidence_strength }}</span>
         </div>
         <div class="command-stack">
@@ -393,10 +678,24 @@
         <p><span class="i18n-zh">本周不建议启动 demo。先补充 evidence 或运行 sources doctor。</span><span class="i18n-en">No demo is recommended this week. Add evidence or run sources doctor first.</span></p>
       {% endif %}
     </aside>
+
+    <div class="hero-metrics" aria-label="run metrics">
+      <div class="metric-tile metric-wide"><span class="metric-label"><span class="i18n-zh">本周建议</span><span class="i18n-en">weekly choice</span></span><strong>{% if report.this_weeks_demo %}<span class="i18n-zh">启动首选项目</span><span class="i18n-en">start recommended project</span>{% else %}<span class="i18n-zh">暂不启动</span><span class="i18n-en">do not start yet</span>{% endif %}</strong></div>
+      <div class="metric-tile metric-wide"><span class="metric-label"><span class="i18n-zh">候选项目</span><span class="i18n-en">candidate projects</span></span><strong>{{ report.opportunity_cards | length }}</strong></div>
+      <div class="metric-tile"><span class="metric-label"><span class="i18n-zh">窗口天数</span><span class="i18n-en">days_window</span></span><strong>{{ report.run_summary.days_window }}</strong></div>
+      <div class="metric-tile"><span class="metric-label"><span class="i18n-zh">证据数量</span><span class="i18n-en">evidence_count</span></span><strong>{{ report.run_summary.evidence_count }}</strong></div>
+      <div class="metric-tile"><span class="metric-label"><span class="i18n-zh">告警数量</span><span class="i18n-en">warning_count</span></span><strong>{{ report.run_summary.warning_count }}</strong></div>
+      <div class="metric-tile"><span class="metric-label"><span class="i18n-zh">报告状态</span><span class="i18n-en">Report Status</span></span><strong>{{ report.run_summary.report_status }}</strong></div>
+    </div>
   </header>
 
-  <section class="section-panel" aria-label="run diagnostics">
-    <div class="section-title">
+  <details class="technical-appendix" id="technical-appendix">
+    <summary>
+      <strong><span class="i18n-zh">技术附录</span><span class="i18n-en">Technical Appendix</span></strong>
+      <span><span class="i18n-zh">数据源、Agent 运行和调试产物默认收起。</span><span class="i18n-en">Sources, agent runtime, and debug artifacts are collapsed by default.</span></span>
+    </summary>
+  <section class="swiss-section source-ledger" aria-label="run diagnostics">
+    <div class="section-heading">
       <div>
         <p class="eyebrow"><span class="i18n-zh">诊断</span><span class="i18n-en">Diagnostics</span></p>
         <h2><span class="i18n-zh">数据源、Agent 轨迹、产物</span><span class="i18n-en">Sources, Agent Trace, Artifacts</span></h2>
@@ -404,17 +703,17 @@
       <span class="pill">timezone: {{ report.run_summary.timezone }}</span>
     </div>
 
-    <div class="grid-3">
-      <div class="card">
+    <div class="panel-grid-3">
+      <div class="swiss-panel">
         <h3><span class="i18n-zh">数据源</span><span class="i18n-en">Sources</span></h3>
-        <p class="muted"><span class="i18n-zh">已请求</span><span class="i18n-en">requested</span></p>
+        <h4><span class="i18n-zh">已请求</span><span class="i18n-en">requested</span></h4>
         <p class="mono">{{ report.run_summary.sources_requested | join(", ") }}</p>
-        <p class="muted"><span class="i18n-zh">成功</span><span class="i18n-en">succeeded</span></p>
+        <h4><span class="i18n-zh">成功</span><span class="i18n-en">succeeded</span></h4>
         <p class="mono">{{ report.run_summary.sources_succeeded | join(", ") }}</p>
-        <p class="muted"><span class="i18n-zh">失败</span><span class="i18n-en">failed</span></p>
+        <h4><span class="i18n-zh">失败</span><span class="i18n-en">failed</span></h4>
         <p class="mono">{{ report.run_summary.sources_failed | join(", ") }}</p>
       </div>
-      <div class="card">
+      <div class="swiss-panel alt">
         <h3><span class="i18n-zh">告警</span><span class="i18n-en">Warnings</span></h3>
         {% if report.run_summary.status_notes %}
           <ul>{% for note in report.run_summary.status_notes %}<li>{{ note }}</li>{% endfor %}</ul>
@@ -430,11 +729,11 @@
           <ul>{% for key, value in report.run_summary.source_warning_counts.items() %}<li><span class="mono">{{ key }}</span>: <span class="mono">{{ value }}</span></li>{% endfor %}</ul>
         {% endif %}
       </div>
-      <div class="card">
+      <div class="swiss-panel">
         <h3><span class="i18n-zh">Agent 轨迹</span><span class="i18n-en">Agent Trace</span></h3>
         {% if report.run_summary.agent_elapsed_ms is not none %}
           <ul>
-            <li>agent_elapsed_ms: <span class="mono">{{ report.run_summary.agent_elapsed_ms }}</span></li>
+            <li><span class="i18n-zh">Agent 耗时约</span><span class="i18n-en">Agent runtime about</span>: <span class="mono">{{ (report.run_summary.agent_elapsed_ms / 1000) | round(1) }}s</span></li>
             <li>search_used_count: <span class="mono">{{ report.run_summary.search_used_count }}</span></li>
             <li>repair_used: <span class="mono">{{ report.run_summary.repair_used }}</span></li>
             {% if report.run_summary.repair_elapsed_ms is not none %}<li>repair_elapsed_ms: <span class="mono">{{ report.run_summary.repair_elapsed_ms }}</span></li>{% endif %}
@@ -449,68 +748,81 @@
 
     {% if report.run_summary.source_scan_file_counts %}
       <h3><span class="i18n-zh">数据源扫描指标</span><span class="i18n-en">Source Scan Metrics</span></h3>
-      <div class="grid-3">
+      <div class="source-metrics">
         {% for key, value in report.run_summary.source_scan_file_counts.items() %}
-          <div class="metric">
-            <span class="label">{{ key }}</span>
+          <div class="metric-tile">
+            <span class="metric-label">{{ key }}</span>
             <strong>{{ value }} files / {{ report.run_summary.source_scan_elapsed_ms.get(key, 0) }} ms</strong>
           </div>
         {% endfor %}
       </div>
     {% endif %}
     {% if report.run_summary.next_steps %}
-      <h3><span class="i18n-zh">下一步</span><span class="i18n-en">Next Steps</span></h3>
-      <ul>{% for step in report.run_summary.next_steps %}<li><span class="mono">{{ step }}</span></li>{% endfor %}</ul>
+      <div class="swiss-panel alt">
+        <h3><span class="i18n-zh">下一步</span><span class="i18n-en">Next Steps</span></h3>
+        <ul>{% for step in report.run_summary.next_steps %}<li><span class="mono">{{ step }}</span></li>{% endfor %}</ul>
+      </div>
     {% endif %}
     {% if report.run_summary.config_overrides %}
-      <h3><span class="i18n-zh">提示词资产</span><span class="i18n-en">Prompt Assets</span></h3>
-      <ul>{% for key, value in report.run_summary.config_overrides.items() %}<li><span class="mono">{{ key }}</span>: <span class="mono">{{ value }}</span></li>{% endfor %}</ul>
+      <div class="swiss-panel">
+        <h3><span class="i18n-zh">提示词资产</span><span class="i18n-en">Prompt Assets</span></h3>
+        <ul>{% for key, value in report.run_summary.config_overrides.items() %}<li><span class="mono">{{ key }}</span>: <span class="mono">{{ value }}</span></li>{% endfor %}</ul>
+      </div>
     {% endif %}
     {% if report.run_summary.debug_bundle_path %}
-      <h3><span class="i18n-zh">调试产物</span><span class="i18n-en">Debug Artifacts</span></h3>
-      <p class="muted"><span class="i18n-zh">本地运行目录</span><span class="i18n-en">local run directory</span>: <span class="mono">{{ report.run_summary.debug_bundle_path }}</span></p>
-      <ul class="artifact-list">
-        {% for artifact in ["run.json", "warnings.jsonl", "evidence_pack.json", "agent_raw_output.json", "validated_report.json", "render.log", "report.html"] %}
-          <li><a class="mono" href="{{ artifact }}">{{ artifact }}</a></li>
-        {% endfor %}
-      </ul>
+      <div class="swiss-panel alt">
+        <h3><span class="i18n-zh">调试产物</span><span class="i18n-en">Debug Artifacts</span></h3>
+        <p class="muted"><span class="i18n-zh">本地运行目录</span><span class="i18n-en">local run directory</span>: <span class="mono">{{ report.run_summary.debug_bundle_path }}</span></p>
+        <ul class="artifact-list">
+          {% for artifact in ["run.json", "warnings.jsonl", "evidence_pack.json", "agent_raw_output.json", "validated_report.json", "render.log", "report.html"] %}
+            <li><a class="mono" href="{{ artifact }}">{{ artifact }}</a></li>
+          {% endfor %}
+        </ul>
+      </div>
     {% endif %}
   </section>
+  </details>
 
-  <section class="section-panel" aria-labelledby="project-opportunity-cards">
-    <div class="section-title">
+  <section class="swiss-section opportunity-section" aria-labelledby="project-opportunity-cards">
+    <div class="section-heading">
       <div>
         <p class="eyebrow"><span class="i18n-zh">证据支撑的选项</span><span class="i18n-en">Evidence-backed options</span></p>
         <h2 id="project-opportunity-cards"><span class="i18n-zh">项目机会卡</span><span class="i18n-en">Project Opportunity Cards</span></h2>
       </div>
       <span class="pill">{{ report.opportunity_cards | length }} cards</span>
     </div>
-    {% for card in report.opportunity_cards %}
-      <article class="card">
-        <div class="opportunity-grid">
+    {% set recommended_card_id = report.this_weeks_demo.card_id if report.this_weeks_demo else report.decision_prompt.suggested_start_card_id %}
+    <div class="recommended-project" id="recommended-project">
+    {% for card in report.opportunity_cards if card.card_id == recommended_card_id %}
+      <article class="opportunity-ledger">
+        <div class="ledger-index">
+          <span class="number">01</span>
+          <span class="pill pill-accent"><span class="i18n-zh">首选实施</span><span class="i18n-en">recommended</span></span>
+          <span class="pill"><span class="i18n-zh">本周只做这一个</span><span class="i18n-en">one focus this week</span></span>
+        </div>
+        <div class="ledger-main">
           <div>
-            <h3>{{ card.title }}</h3>
-            <div class="status-line">
-              <span class="pill pill-accent">card_id: {{ card.card_id }}</span>
-              <span class="pill">status_hint: {{ card.status_hint }}</span>
-              <span class="pill">search: {{ card.search_trace.impact }}</span>
-            </div>
+            <h3 class="opportunity-title">{{ card.title }}</h3>
             <p>{{ card.one_sentence }}</p>
             <h4><span class="i18n-zh">证据</span><span class="i18n-en">Evidence</span></h4>
             <ul class="evidence-list">{% for note in card.evidence_notes %}<li>{{ note }}</li>{% endfor %}</ul>
           </div>
-          <div class="grid-2">
-            <div>
+          <div class="swiss-matrix">
+            <div class="matrix-cell alt">
               <h4><span class="i18n-zh">为什么是你</span><span class="i18n-en">Why You</span></h4>
               <ul>{% for item in card.why_you %}<li>{{ item }}</li>{% endfor %}</ul>
+            </div>
+            <div class="matrix-cell">
               <h4><span class="i18n-zh">为什么是现在</span><span class="i18n-en">Why Now</span></h4>
               <ul>{% for item in card.why_now %}<li>{{ item }}</li>{% endfor %}</ul>
             </div>
-            <div>
+            <div class="matrix-cell">
               <h4><span class="i18n-zh">首批用户</span><span class="i18n-en">First Users</span></h4>
               <p>{{ card.first_users }}</p>
               <h4><span class="i18n-zh">48 小时 Demo</span><span class="i18n-en">48h Demo</span></h4>
               <ul>{% for item in card.demo_48h %}<li>{{ item }}</li>{% endfor %}</ul>
+            </div>
+            <div class="matrix-cell alt">
               <h4><span class="i18n-zh">风险</span><span class="i18n-en">Risks</span></h4>
               <ul>{% for item in card.risks %}<li>{{ item }}</li>{% endfor %}</ul>
               <h4><span class="i18n-zh">终止信号</span><span class="i18n-en">Kill Signal</span></h4>
@@ -520,12 +832,60 @@
         </div>
       </article>
     {% else %}
-      <p><span class="i18n-zh">没有足够 evidence 生成项目机会卡。</span><span class="i18n-en">There is not enough evidence to generate opportunity cards.</span></p>
+      <p><span class="i18n-zh">当前没有足够 evidence 选出首选项目。</span><span class="i18n-en">There is not enough evidence to choose one recommended project.</span></p>
+    {% endfor %}
+    </div>
+
+    <div class="candidate-heading" id="candidate-projects">
+      <div>
+        <p class="eyebrow"><span class="i18n-zh">待考察项目</span><span class="i18n-en">Candidates</span></p>
+        <h3><span class="i18n-zh">不是本周主线，先保留观察</span><span class="i18n-en">Not this week's main line; keep watching</span></h3>
+      </div>
+      <span class="pill"><span class="i18n-zh">避免信息过载</span><span class="i18n-en">avoid overload</span></span>
+    </div>
+    {% for card in report.opportunity_cards if card.card_id != recommended_card_id %}
+      <article class="opportunity-ledger">
+        <div class="ledger-index">
+          <span class="number">{{ "%02d"|format(loop.index + 1) }}</span>
+          <span class="pill"><span class="i18n-zh">待考察</span><span class="i18n-en">candidate</span></span>
+          <span class="pill">search: {{ card.search_trace.impact }}</span>
+        </div>
+        <div class="ledger-main">
+          <div>
+            <h3 class="opportunity-title">{{ card.title }}</h3>
+            <p>{{ card.one_sentence }}</p>
+            <h4><span class="i18n-zh">证据</span><span class="i18n-en">Evidence</span></h4>
+            <ul class="evidence-list">{% for note in card.evidence_notes %}<li>{{ note }}</li>{% endfor %}</ul>
+          </div>
+          <div class="swiss-matrix">
+            <div class="matrix-cell alt">
+              <h4><span class="i18n-zh">为什么是你</span><span class="i18n-en">Why You</span></h4>
+              <ul>{% for item in card.why_you %}<li>{{ item }}</li>{% endfor %}</ul>
+            </div>
+            <div class="matrix-cell">
+              <h4><span class="i18n-zh">为什么是现在</span><span class="i18n-en">Why Now</span></h4>
+              <ul>{% for item in card.why_now %}<li>{{ item }}</li>{% endfor %}</ul>
+            </div>
+            <div class="matrix-cell">
+              <h4><span class="i18n-zh">首批用户</span><span class="i18n-en">First Users</span></h4>
+              <p>{{ card.first_users }}</p>
+              <h4><span class="i18n-zh">48 小时 Demo</span><span class="i18n-en">48h Demo</span></h4>
+              <ul>{% for item in card.demo_48h %}<li>{{ item }}</li>{% endfor %}</ul>
+            </div>
+            <div class="matrix-cell alt">
+              <h4><span class="i18n-zh">风险</span><span class="i18n-en">Risks</span></h4>
+              <ul>{% for item in card.risks %}<li>{{ item }}</li>{% endfor %}</ul>
+              <h4><span class="i18n-zh">终止信号</span><span class="i18n-en">Kill Signal</span></h4>
+              <ul>{% for item in card.kill_signals %}<li>{{ item }}</li>{% endfor %}</ul>
+            </div>
+          </div>
+        </div>
+      </article>
     {% endfor %}
   </section>
 
-  <section class="section-panel" aria-labelledby="demo-briefs">
-    <div class="section-title">
+  <section class="swiss-section demo-atelier" aria-labelledby="demo-briefs">
+    <div class="section-heading">
       <div>
         <p class="eyebrow"><span class="i18n-zh">高保真界面</span><span class="i18n-en">Hi-Fi UI Preview</span></p>
         <h2 id="demo-briefs"><span class="i18n-zh">Demo 简报</span><span class="i18n-en">Demo Briefs</span></h2>
@@ -533,9 +893,9 @@
       <span class="pill"><span class="i18n-zh">真实 UI 预览</span><span class="i18n-en">high-fidelity UI</span></span>
     </div>
     {% for card in report.opportunity_cards if card.demo_brief %}
-      <article class="card">
+      <article class="demo-atelier-item">
         <h3>{{ card.title }}</h3>
-        <div class="grid-2">
+        <div class="brief-grid">
           <div>
             <h4><span class="i18n-zh">单屏产品形态</span><span class="i18n-en">One-screen product shape</span></h4>
             <p>{{ card.demo_brief.one_screen_product_shape }}</p>
@@ -554,51 +914,56 @@
             </ul>
           </div>
         </div>
-        <div class="hifi-board" aria-label="high fidelity interface preview">
-          <div class="hifi-stage">
-            <div class="hifi-screen">
-              <aside class="hifi-sidebar" aria-hidden="true">
-                <div class="hifi-logo">T</div>
-                <div class="hifi-nav-item active"><span class="i18n-zh">机会</span><span class="i18n-en">Opportunities</span></div>
-                <div class="hifi-nav-item"><span class="i18n-zh">证据</span><span class="i18n-en">Evidence</span></div>
-                <div class="hifi-nav-item"><span class="i18n-zh">决策</span><span class="i18n-en">Decision</span></div>
-              </aside>
-              <div class="hifi-content">
-                <div class="hifi-toolbar">
+
+        <div class="product-frame" aria-label="high fidelity interface preview">
+          <div class="product-ui-screen">
+            <aside class="product-ui-rail" aria-hidden="true">
+              <div class="product-ui-logo">T</div>
+              <div class="product-ui-nav">
+                <span class="active"><span class="i18n-zh">机会</span><span class="i18n-en">Opportunities</span></span>
+                <span><span class="i18n-zh">证据</span><span class="i18n-en">Evidence</span></span>
+                <span><span class="i18n-zh">决策</span><span class="i18n-en">Decision</span></span>
+              </div>
+              <span class="t-meta">48H / LOCAL</span>
+            </aside>
+            <div class="product-ui-main">
+              <div class="product-ui-toolbar">
+                <div>
+                  <span class="metric-label"><span class="i18n-zh">高保真画面</span><span class="i18n-en">Hi-Fi screen</span></span>
+                  <h3>{{ card.title }}</h3>
+                </div>
+                <div class="product-ui-action"><span class="i18n-zh">启动 Demo</span><span class="i18n-en">Start demo</span></div>
+              </div>
+              <div class="product-ui-workspace">
+                <div class="product-ui-list">
+                  <div class="product-row"><strong>{{ card.demo_brief.prototype_panel.one_screen_mock }}</strong><span class="product-chip">{{ card.status_hint }}</span></div>
+                  <div class="product-row"><span>{{ card.demo_brief.prototype_panel.core_interaction_state }}</span><span class="product-chip">{{ card.evidence_ids | length }} ev</span></div>
+                  <div class="product-row"><span>{{ card.demo_brief.core_interaction }}</span><span class="product-chip">48h</span></div>
+                  <div class="product-row"><span>{{ card.demo_brief.demo_success_signal }}</span><span class="product-chip">signal</span></div>
+                </div>
+                <aside class="product-ui-inspector">
                   <div>
-                    <span class="label"><span class="i18n-zh">高保真画面</span><span class="i18n-en">Hi-Fi screen</span></span>
-                    <h3>{{ card.title }}</h3>
+                    <span class="metric-label"><span class="i18n-zh">界面数据</span><span class="i18n-en">UI data</span></span>
+                    <ul class="product-data-list">{% for item in card.demo_brief.prototype_panel.data_placeholders %}<li><span class="mono">{{ item }}</span></li>{% endfor %}</ul>
                   </div>
-                  <div class="hifi-primary-action"><span class="i18n-zh">启动 Demo</span><span class="i18n-en">Start demo</span></div>
-                </div>
-                <div class="hifi-table">
-                  <div class="hifi-row"><strong>{{ card.demo_brief.prototype_panel.one_screen_mock }}</strong><span class="hifi-chip">{{ card.status_hint }}</span></div>
-                  <div class="hifi-row"><span>{{ card.demo_brief.prototype_panel.core_interaction_state }}</span><span class="hifi-chip">{{ card.evidence_ids | length }} ev</span></div>
-                  <div class="hifi-row"><span>{{ card.demo_brief.core_interaction }}</span><span class="hifi-chip">48h</span></div>
-                </div>
-                <div class="hifi-workspace">
-                  <div class="hifi-detail">
-                    <span class="label"><span class="i18n-zh">界面数据</span><span class="i18n-en">UI data</span></span>
-                    <ul>{% for item in card.demo_brief.prototype_panel.data_placeholders %}<li><span class="mono">{{ item }}</span></li>{% endfor %}</ul>
-                  </div>
-                  <div class="hifi-detail">
-                    <span class="label"><span class="i18n-zh">画面目标</span><span class="i18n-en">Screen goal</span></span>
+                  <div>
+                    <span class="metric-label"><span class="i18n-zh">画面目标</span><span class="i18n-en">Screen goal</span></span>
                     <p>{{ card.demo_brief.demo_success_signal }}</p>
                   </div>
-                </div>
+                </aside>
               </div>
             </div>
           </div>
           <div>
             <h4><span class="i18n-zh">核心交互状态</span><span class="i18n-en">Core interaction state</span></h4>
             <p>{{ card.demo_brief.prototype_panel.core_interaction_state }}</p>
-            <div class="hifi-empty-success">
-              <div class="state-box empty">
-                <span class="label"><span class="i18n-zh">空状态</span><span class="i18n-en">empty state</span></span>
+            <div class="state-grid">
+              <div class="state-cell alt">
+                <span class="metric-label"><span class="i18n-zh">空状态</span><span class="i18n-en">empty state</span></span>
                 <p>{{ card.demo_brief.prototype_panel.empty_state }}</p>
               </div>
-              <div class="state-box success">
-                <span class="label"><span class="i18n-zh">成功状态</span><span class="i18n-en">success state</span></span>
+              <div class="state-cell">
+                <span class="metric-label"><span class="i18n-zh">成功状态</span><span class="i18n-en">success state</span></span>
                 <p>{{ card.demo_brief.prototype_panel.success_state }}</p>
               </div>
             </div>
@@ -606,15 +971,16 @@
             <p>{{ card.demo_brief.prototype_prompt }}</p>
           </div>
         </div>
+
         {% if card.credible_success_path %}
           <h4><span class="i18n-zh">产品可信成功路径</span><span class="i18n-en">Product Credible Success Path</span></h4>
           <div class="path-grid">
-            <div class="metric"><span class="label"><span class="i18n-zh">窄用户</span><span class="i18n-en">narrow user</span></span><strong>{{ card.credible_success_path.narrow_user }}</strong></div>
-            <div class="metric"><span class="label"><span class="i18n-zh">当前替代品</span><span class="i18n-en">alternative</span></span><strong>{{ card.credible_success_path.current_alternative }}</strong></div>
-            <div class="metric"><span class="label"><span class="i18n-zh">需求证据</span><span class="i18n-en">demand evidence</span></span><strong>{{ card.credible_success_path.credible_demand_evidence }}</strong></div>
-            <div class="metric"><span class="label"><span class="i18n-zh">分发路径</span><span class="i18n-en">distribution</span></span><strong>{{ card.credible_success_path.first_distribution_path }}</strong></div>
-            <div class="metric"><span class="label"><span class="i18n-zh">两周信号</span><span class="i18n-en">two week signal</span></span><strong>{{ card.credible_success_path.two_week_validation_signal }}</strong></div>
-            <div class="metric"><span class="label"><span class="i18n-zh">终止信号</span><span class="i18n-en">kill signal</span></span><strong>{{ card.credible_success_path.kill_signal }}</strong></div>
+            <div class="state-cell alt"><span class="metric-label"><span class="i18n-zh">窄用户</span><span class="i18n-en">narrow user</span></span><strong>{{ card.credible_success_path.narrow_user }}</strong></div>
+            <div class="state-cell"><span class="metric-label"><span class="i18n-zh">当前替代品</span><span class="i18n-en">alternative</span></span><strong>{{ card.credible_success_path.current_alternative }}</strong></div>
+            <div class="state-cell alt"><span class="metric-label"><span class="i18n-zh">需求证据</span><span class="i18n-en">demand evidence</span></span><strong>{{ card.credible_success_path.credible_demand_evidence }}</strong></div>
+            <div class="state-cell"><span class="metric-label"><span class="i18n-zh">分发路径</span><span class="i18n-en">distribution</span></span><strong>{{ card.credible_success_path.first_distribution_path }}</strong></div>
+            <div class="state-cell alt"><span class="metric-label"><span class="i18n-zh">两周信号</span><span class="i18n-en">two week signal</span></span><strong>{{ card.credible_success_path.two_week_validation_signal }}</strong></div>
+            <div class="state-cell"><span class="metric-label"><span class="i18n-zh">终止信号</span><span class="i18n-en">kill signal</span></span><strong>{{ card.credible_success_path.kill_signal }}</strong></div>
           </div>
         {% endif %}
       </article>
@@ -623,16 +989,15 @@
     {% endfor %}
   </section>
 
-  <section class="section-panel" aria-labelledby="decision-prompt">
-    <div class="section-title">
+  <section class="swiss-section decision-ledger" id="next-action" aria-labelledby="decision-prompt">
+    <div class="section-heading">
       <div>
         <p class="eyebrow"><span class="i18n-zh">仅本地决策</span><span class="i18n-en">Local decision only</span></p>
-        <h2 id="decision-prompt"><span class="i18n-zh">决策提示</span><span class="i18n-en">Decision Prompt</span></h2>
+        <h2 id="decision-prompt"><span class="i18n-zh">下一步怎么做</span><span class="i18n-en">Decision Prompt</span></h2>
       </div>
-      {% if report.decision_prompt.suggested_start_card_id %}
-        <span class="pill pill-accent">suggested: {{ report.decision_prompt.suggested_start_card_id }}</span>
-      {% endif %}
+      <span class="pill pill-accent"><span class="i18n-zh">只选一个动作</span><span class="i18n-en">choose one action</span></span>
     </div>
+    <p class="action-copy"><span class="i18n-zh">只需要决定是否启动首选项目：确定要做就执行 Start；还需要观察就 Snooze；明确不做就 Reject。其他候选项目先不进入本周执行。</span><span class="i18n-en">Decide only whether to start the recommended project: use Start if you will build it, Snooze if you need more signal, or Reject if this round is not worth doing.</span></p>
     <div class="command-stack">
       {% if report.decision_prompt.start_command %}
         <div class="command-row"><span class="command-label">start</span><div class="command" tabindex="0">{{ report.decision_prompt.start_command }}</div></div>
@@ -644,13 +1009,13 @@
         <div class="command-row"><span class="command-label">reject</span><div class="command" tabindex="0">{{ report.decision_prompt.reject_command }}</div></div>
       {% endif %}
     </div>
-    <div class="grid-2">
-      <div>
-        <h4><span class="i18n-zh">不应该做</span><span class="i18n-en">Should not do</span></h4>
+    <div class="decision-grid">
+      <div class="swiss-panel alt">
+        <h3><span class="i18n-zh">不应该做</span><span class="i18n-en">Should not do</span></h3>
         <ul>{% for item in report.decision_prompt.should_not_do %}<li>{{ item }}</li>{% else %}<li class="muted"><span class="i18n-zh">没有记录被阻止的方向。</span><span class="i18n-en">No blocked direction recorded.</span></li>{% endfor %}</ul>
       </div>
-      <div>
-        <h4><span class="i18n-zh">需要用户确认</span><span class="i18n-en">Needs user confirmation</span></h4>
+      <div class="swiss-panel">
+        <h3><span class="i18n-zh">需要用户确认</span><span class="i18n-en">Needs user confirmation</span></h3>
         <ul>{% for item in report.decision_prompt.needs_user_confirmation %}<li>{{ item }}</li>{% else %}<li class="muted"><span class="i18n-zh">没有记录确认项。</span><span class="i18n-en">No confirmation item recorded.</span></li>{% endfor %}</ul>
       </div>
     </div>

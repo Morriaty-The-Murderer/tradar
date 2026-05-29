@@ -125,6 +125,65 @@ def test_base_renderer_outputs_required_sections_and_privacy_notice() -> None:
         assert f'href="{artifact}"' in html
 
 
+def test_base_renderer_uses_decision_memo_visual_system() -> None:
+    html = render_base_report(_report())
+
+    assert "Guizang Social Card / Swiss International" in html
+    assert "guizang-swiss-report" in html
+    assert "swiss-topbar" in html
+    assert "swiss-hero" in html
+    assert "source-ledger" in html
+    assert "opportunity-ledger" in html
+    assert "demo-atelier" in html
+    assert "decision-ledger" in html
+    assert "decision-desk" not in html
+    assert "source-pulse" not in html
+    assert "opportunity-stack" not in html
+    assert "demo-lab" not in html
+    assert "section-panel" not in html
+    assert "letter-spacing: 0" in html
+    assert "border-radius: 8px" not in html
+    assert "box-shadow" not in html
+    assert "linear-gradient" not in html
+
+
+def test_base_renderer_uses_safety_orange_swiss_theme() -> None:
+    html = render_base_report(_report())
+
+    assert 'data-accent="safety-orange"' in html
+    assert "Safety Orange" in html
+    assert "--paper: #fafaf8" in html
+    assert "--accent: #FF6B35" in html
+    assert "--accent-on: #ffffff" in html
+    assert "--grey-1: #f0f0ee" in html
+    assert "--dark:" not in html
+    assert "--success:" not in html
+    assert "--warning:" not in html
+    assert "--danger:" not in html
+    assert "#2f80ed" not in html
+    assert "#155eef" not in html
+    assert "#0b7a61" not in html
+
+
+def test_base_renderer_prioritizes_one_recommended_project_over_raw_trace() -> None:
+    report = _report()
+    report.run_summary.agent_elapsed_ms = 227504
+
+    html = render_base_report(report)
+
+    assert 'class="report-nav"' in html
+    assert 'href="#recommended-project"' in html
+    assert 'id="recommended-project"' in html
+    assert "首选实施" in html
+    assert "待考察项目" in html
+    assert "下一步怎么做" in html
+    assert "只需要决定是否启动首选项目" in html
+    assert "技术附录" in html
+    assert "agent_elapsed_ms:" not in html
+    assert "card_id:" not in html
+    assert "suggested:" not in html
+
+
 def test_required_section_validator_reports_missing_sections() -> None:
     missing = validate_required_sections("<html><body>Run Summary</body></html>")
 

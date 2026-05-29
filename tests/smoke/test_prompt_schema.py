@@ -58,6 +58,22 @@ def test_prompt_assets_have_content_hashes_and_mock_output_validates() -> None:
     assert report.opportunity_cards[0].evidence_ids == ["ev_1", "ev_2"]
 
 
+def test_html_design_prompt_allows_hifi_product_ui_creativity() -> None:
+    prompt = load_prompt_asset("html_design", "tradar/agent_runner/prompts/html_design.md")
+
+    assert "Guizang Social Card Swiss International" in prompt.content
+    assert "Safety Orange" in prompt.content
+    assert "Safety Orange accent palette" in prompt.content
+    assert "no gradients, no shadows, no rounded SaaS cards" in prompt.content
+    assert "free to invent the product UI composition" in prompt.content
+    assert "Do not treat the base template as a hard visual cage" in prompt.content
+    assert "clickable, stateful product prototype" in prompt.content
+    assert "wire every primary control" in prompt.content
+    assert "data-demo-action" in prompt.content
+    assert "Open Design skill" in prompt.content
+    assert "Do not copy the base template product-ui-screen" in prompt.content
+
+
 def test_codex_adapter_builds_command_without_running_agent() -> None:
     adapter = CodexAdapter(codex_binary="codex")
 

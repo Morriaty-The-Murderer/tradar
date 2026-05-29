@@ -71,7 +71,8 @@ _DEFINITIONS = [
         "P1",
         (
             "输出目录位于 git repo 内，可能包含本地证据和未脱敏报告；"
-            "请加入 .gitignore 或改用用户级目录。"
+            "这里的 path 指向 output_dir，请把该 output_dir 加入所在 repo 的 .gitignore，"
+            "或改用用户级目录。"
         ),
         True,
     ),
@@ -139,6 +140,13 @@ _DEFINITIONS = [
         "render.enhanced_failed",
         "P1",
         "增强渲染失败，已回退 base HTML。",
+        True,
+    ),
+    ErrorDefinition(
+        "EnhancedRenderValidationError",
+        "render.enhanced_static_prototype",
+        "P1",
+        "增强渲染没有生成可点击原型，已回退 base HTML。",
         True,
     ),
     ErrorDefinition(

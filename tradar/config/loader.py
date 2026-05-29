@@ -10,7 +10,9 @@ from typing import Any
 from tradar.config.defaults import (
     DEFAULT_AGENT_TIMEOUT_SECONDS,
     DEFAULT_CLAUDE_BINARY,
+    DEFAULT_CLAUDE_PROJECT_PATH,
     DEFAULT_CODEX_BINARY,
+    DEFAULT_CODEX_SESSION_PATH,
     DEFAULT_DAYS_WINDOW,
     DEFAULT_DEBUG_RETENTION_RUN_COUNT,
     DEFAULT_HTML_DESIGN_TIMEOUT_SECONDS,
@@ -114,8 +116,14 @@ def write_default_config(
     path = Path(config_path).expanduser()
     path.parent.mkdir(parents=True, exist_ok=True)
     lines = [
-        _array_line("codex_session_paths", codex_session_paths or []),
-        _array_line("claude_project_paths", claude_project_paths or []),
+        _array_line(
+            "codex_session_paths",
+            [DEFAULT_CODEX_SESSION_PATH] if codex_session_paths is None else codex_session_paths,
+        ),
+        _array_line(
+            "claude_project_paths",
+            [DEFAULT_CLAUDE_PROJECT_PATH] if claude_project_paths is None else claude_project_paths,
+        ),
         _array_line("project_roots", project_roots or []),
         f'output_dir = "{output_dir or DEFAULT_OUTPUT_DIR}"',
         f'state_dir = "{state_dir or DEFAULT_STATE_DIR}"',

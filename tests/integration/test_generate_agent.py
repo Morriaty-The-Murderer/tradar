@@ -1,12 +1,20 @@
 from __future__ import annotations
 
 import json
+import time
 from pathlib import Path
 
 import pytest
 
 import tradar.cli.app as cli_module
-from tradar.agent_runner.base import AgentRawOutput, MockAgentAdapter
+from tradar.agent_runner.base import (
+    AgentAdapter,
+    AgentRawOutput,
+    MockAgentAdapter,
+    PromptAssets,
+    RunContext,
+    ToolPolicy,
+)
 from tradar.agent_runner.schema_repair import (
     AgentOutputSchemaError,
     FixedSchemaRepairAdapter,
@@ -48,6 +56,56 @@ def test_generate_with_agent_adapter_writes_validated_report(tmp_path: Path) -> 
     assert raw_output["mode"] == "codex"
     assert len(raw_output["prompt_assets"]["analyst"]["content_hash"]) == 64
     assert "Tradar Agent Path" in html
+
+
+def test_generate_with_agent_adapter_emits_progress_events(tmp_path: Path) -> None:
+    config_path = _write_config(tmp_path)
+    config = load_config(config_path)
+    scan_sources(config)
+    evidence_ids = _first_evidence_ids(config.database_path, 2)
+    adapter = MockAgentAdapter(
+        AgentRawOutput(
+            raw_text=_agent_report_json(evidence_ids=evidence_ids),
+            elapsed_ms=12,
+        )
+    )
+    progress: list[str] = []
+
+    generate_report(
+        config,
+        days=30,
+        agent_mode="codex",
+        agent_adapter=adapter,
+        progress_sink=progress.append,
+    )
+
+    assert "generate_started days=30 agent=codex render=base" in progress
+    assert any(line.startswith("evidence_loaded count=") for line in progress)
+    assert "agent_started mode=codex timeout_seconds=300" in progress
+    assert "agent_completed elapsed_ms=12" in progress
+    assert "schema_validated cards=1 repair_used=false" in progress
+    assert "debug_bundle_written=true" in progress
+
+
+def test_generate_emits_agent_heartbeat_during_slow_agent(tmp_path: Path) -> None:
+    config_path = _write_config(tmp_path)
+    config = load_config(config_path)
+    scan_sources(config)
+    evidence_ids = _first_evidence_ids(config.database_path, 2)
+    progress: list[str] = []
+
+    generate_report(
+        config,
+        days=30,
+        agent_mode="codex",
+        agent_adapter=_SlowAgentAdapter(_agent_report_json(evidence_ids=evidence_ids)),
+        progress_sink=progress.append,
+        agent_progress_interval_seconds=0.01,
+    )
+
+    assert any(line.startswith("agent_progress elapsed_s=") for line in progress)
+    assert any("status=running" in line for line in progress)
+    assert "agent_completed elapsed_ms=25" in progress
 
 
 def test_generate_records_agent_search_trace_in_run_summary(tmp_path: Path) -> None:
@@ -345,6 +403,22 @@ def _first_evidence_ids(database_path: Path, count: int) -> list[str]:
     return [item.id for item in evidence[:count]]
 
 
+class _SlowAgentAdapter(AgentAdapter):
+    def __init__(self, raw_text: str) -> None:
+        self.raw_text = raw_text
+
+    def run(
+        self,
+        evidence_pack,
+        prompt_assets: PromptAssets,
+        tool_policy: ToolPolicy,
+        run_context: RunContext,
+    ) -> AgentRawOutput:
+        _ = evidence_pack, prompt_assets, tool_policy, run_context
+        time.sleep(0.025)
+        return AgentRawOutput(raw_text=self.raw_text, elapsed_ms=25)
+
+
 def _agent_report_json(
     evidence_ids: list[str],
     card_id: str | None = None,
@@ -403,6 +477,4 @@ def _agent_report_json(
             "start_command": f"tradar accept {card_id}",
             "skip_command": f"tradar snooze {card_id}",
         }
-    return json.dumps(
-        payload
-    )
+    return json.dumps(payload)

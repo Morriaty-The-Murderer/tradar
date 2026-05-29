@@ -82,6 +82,17 @@ def test_sources_doctor_reports_missing_config_with_init_next_action(tmp_path: P
     assert str(missing_config) in result.output
 
 
+def test_init_uses_default_agent_session_paths_without_manual_flags(tmp_path: Path) -> None:
+    config_path = tmp_path / "config.toml"
+
+    result = CliRunner().invoke(app, ["--config", str(config_path), "init"])
+
+    assert result.exit_code == 0, result.output
+    config_text = config_path.read_text(encoding="utf-8")
+    assert str(Path.home() / ".codex" / "sessions") in config_text
+    assert str(Path.home() / ".claude" / "projects") in config_text
+
+
 def test_run_reports_missing_config_before_scan_side_effects(tmp_path: Path) -> None:
     missing_config = tmp_path / "missing-config.toml"
 
@@ -116,6 +127,7 @@ def test_sources_doctor_warns_when_output_dir_is_inside_repo(tmp_path: Path) -> 
 
     assert result.exit_code == 0, result.output
     assert "P1 source.repo_output_dir" in result.output
+    assert "path 指向 output_dir" in result.output
     assert ".gitignore" in result.output
     assert str(output_dir) in result.output
 
@@ -194,6 +206,11 @@ def test_scan_writes_evidence_and_watermarks_without_generating_report(tmp_path:
 
     assert result.exit_code == 0, result.output
     assert "scanned_evidence=" in result.output
+    assert "scan_summary=true" in result.output
+    assert "database_path=" in result.output
+    assert "source.codex_session files=" in result.output
+    assert "source.project_docs files=" in result.output
+    assert "next_action=uv run tradar generate --days 30 --agent codex" in result.output
     state_db = tmp_path / "state" / "tradar.sqlite"
     assert state_db.exists()
     assert not (tmp_path / "runs").exists()
@@ -339,6 +356,27 @@ def test_generate_reads_existing_store_and_does_not_rescan_sources(tmp_path: Pat
     report_path = _extract_output_path(generate_result.output, "generated_report=")
     assert report_path.exists()
     assert "Project Opportunity Cards" in report_path.read_text(encoding="utf-8")
+
+
+def test_generate_can_open_report_after_writing(tmp_path: Path, monkeypatch) -> None:
+    config_path = _write_config(tmp_path)
+    runner = CliRunner()
+    scan_result = runner.invoke(app, ["--config", str(config_path), "scan"])
+    assert scan_result.exit_code == 0, scan_result.output
+    opened_paths: list[Path] = []
+
+    def fake_open_report(path: Path) -> str:
+        opened_paths.append(path)
+        return "opened"
+
+    monkeypatch.setattr(cli_module, "_open_report", fake_open_report)
+
+    result = runner.invoke(app, ["--config", str(config_path), "generate", "--days", "30"])
+
+    assert result.exit_code == 0, result.output
+    report_path = _extract_output_path(result.output, "generated_report=")
+    assert opened_paths == [report_path]
+    assert "open_report=opened" in result.output
 
 
 def test_run_composes_scan_and_generate(tmp_path: Path) -> None:

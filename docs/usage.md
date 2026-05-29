@@ -6,10 +6,11 @@
 
 ```bash
 uv run tradar init \
-  --codex-session-path ~/.codex/sessions \
-  --claude-project-path ~/.claude/projects \
   --project-root /path/to/project
 ```
+
+`codex_session_paths` 和 `claude_project_paths` 默认分别写入
+`~/.codex/sessions`、`~/.claude/projects`，通常只需要补充项目 root。
 
 2. 检查数据源：
 
@@ -148,7 +149,7 @@ project docs connector 只读取 `AGENTS.md`、`CLAUDE.md`、`README.md`、`CHAN
 
 如果可选 `project_roots` 不存在，`sources doctor` 会输出 `P2 source.optional_root_missing`。这不会阻断运行；scan / run 会跳过该 root，并把提示写入 `warnings.jsonl` 和 Run Summary。
 
-如果配置的 `output_dir` 位于 git repo 内，`sources doctor` 会输出 `P1 source.repo_output_dir`。这不会阻断运行，但表示 run artifact 可能包含本地 evidence 和未脱敏报告，应将该目录加入 `.gitignore`，或改回默认用户级目录。生成报告时，P1 / P2 doctor 提示会写入 `warnings.jsonl` 和 Run Summary 的 `warning_events`。
+如果配置的 `output_dir` 位于 git repo 内，`sources doctor` 会输出 `P1 source.repo_output_dir`。输出里的 `path=` 指向需要处理的 `output_dir`，不是当前执行命令的目录。这不会阻断运行，但表示 run artifact 可能包含本地 evidence 和未脱敏报告，应将该目录加入所在 repo 的 `.gitignore`，或改回默认用户级目录。生成报告时，P1 / P2 doctor 提示会写入 `warnings.jsonl` 和 Run Summary 的 `warning_events`。
 
 如果源文件超过 `max_source_file_bytes`，`sources doctor` 会输出 `P2 source.too_large`。scan 会跳过该 JSONL / Markdown 文件，不写入 evidence，也不会送入 analyst agent。
 
@@ -176,7 +177,7 @@ save_agent_raw_output = false
 ```toml
 max_evidence_items = 120
 max_pack_tokens = 24000
-max_source_file_bytes = 5242880
+max_source_file_bytes = 52428800
 agent_timeout_seconds = 300
 schema_repair_timeout_seconds = 300
 html_design_timeout_seconds = 300
@@ -184,7 +185,9 @@ codex_binary = "codex"
 claude_binary = "claude"
 ```
 
-`scan` 使用 `max_source_file_bytes` 跳过过大的 JSONL / Markdown 源文件。`generate` 会把 `max_evidence_items` 和 `max_pack_tokens` 传给 pack builder。超出条数或 token 预算的 evidence 不会进入 analyst prompt，会记录在 `evidence_pack.json` 的 `omitted_summary` 中。
+`scan` 使用 `max_source_file_bytes` 跳过过大的 JSONL / Markdown 源文件，默认 50MB。`generate` 会把 `max_evidence_items` 和 `max_pack_tokens` 传给 pack builder。超出条数或 token 预算的 evidence 不会进入 analyst prompt，会记录在 `evidence_pack.json` 的 `omitted_summary` 中。
+
+`generate` 在交互式终端里会自动打开生成的 `report.html`。脚本或 CI 场景可使用 `--no-open`。
 
 `agent_timeout_seconds` 控制 analyst agent 外呼超时，超时会输出 `agent.timeout` 并停止本次生成。`schema_repair_timeout_seconds` 控制一次 schema repair 外呼。`html_design_timeout_seconds` 控制增强 HTML 外呼；超时只会回退 base HTML。
 

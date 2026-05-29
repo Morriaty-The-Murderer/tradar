@@ -6,6 +6,8 @@ import os
 import subprocess
 import sys
 from collections.abc import Iterable, Mapping, Sequence
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import TimeoutError as FutureTimeoutError
 from dataclasses import dataclass
 from datetime import timedelta
 from pathlib import Path
@@ -128,8 +130,8 @@ def init_command(
     config_path = _config_path()
     write_default_config(
         config_path=config_path,
-        codex_session_paths=[codex_session_path] if codex_session_path else [],
-        claude_project_paths=[claude_project_path] if claude_project_path else [],
+        codex_session_paths=[codex_session_path] if codex_session_path else None,
+        claude_project_paths=[claude_project_path] if claude_project_path else None,
         project_roots=[project_root] if project_root else [],
         output_dir=output_dir,
         state_dir=state_dir,
@@ -167,6 +169,7 @@ def scan_command(ctx: typer.Context) -> None:
         skip_paths=[issue.path for issue in skippable_p0_issues if issue.path is not None],
     )
     typer.echo(f"scanned_evidence={scanned}")
+    _print_scan_summary(config)
     if skippable_p0_issues:
         raise typer.Exit(1)
 
@@ -176,6 +179,7 @@ def generate_command(
     days: int | None = typer.Option(None, "--days"),
     agent: str = typer.Option("base", "--agent", help="base 或 codex。"),
     render: str = typer.Option("base", "--render", help="base 或 enhanced。"),
+    open_report: bool = typer.Option(True, "--open/--no-open", help="生成后打开 report.html。"),
 ) -> None:
     config = _load_config_or_exit()
     try:
@@ -190,6 +194,7 @@ def generate_command(
             days=days or config.days_window,
             agent_mode=agent_mode,
             render_mode=render_mode,
+            progress_sink=typer.echo,
         )
     except AgentAdapterExecutionError as exc:
         _print_agent_execution_error(exc)
@@ -198,6 +203,7 @@ def generate_command(
         _print_agent_schema_error(exc)
         raise typer.Exit(1) from exc
     typer.echo(f"generated_report={report_path}")
+    _print_open_report_result(report_path, open_report)
 
 
 @app.command("run")
@@ -206,6 +212,7 @@ def run_command(
     days: int | None = typer.Option(None, "--days"),
     agent: str = typer.Option("base", "--agent", help="base 或 codex。"),
     render: str = typer.Option("base", "--render", help="base 或 enhanced。"),
+    open_report: bool = typer.Option(True, "--open/--no-open", help="生成后打开 report.html。"),
 ) -> None:
     config = _load_config_or_exit()
     try:
@@ -227,6 +234,7 @@ def run_command(
             days=days or config.days_window,
             agent_mode=agent_mode,
             render_mode=render_mode,
+            progress_sink=typer.echo,
         )
     except AgentAdapterExecutionError as exc:
         _print_agent_execution_error(exc)
@@ -235,6 +243,7 @@ def run_command(
         _print_agent_schema_error(exc)
         raise typer.Exit(1) from exc
     typer.echo(f"generated_report={report_path}")
+    _print_open_report_result(report_path, open_report)
 
 
 @app.command("accept")
@@ -312,7 +321,9 @@ def doctor_config(config: RadarConfig) -> list[DoctorIssue]:
                 DoctorIssue(
                     severity="P2",
                     event="source.optional_root_missing",
-                    message=get_event_definition("source.optional_root_missing").default_user_message,
+                    message=get_event_definition(
+                        "source.optional_root_missing"
+                    ).default_user_message,
                     path=root,
                     source_type="project_docs",
                 )
@@ -440,11 +451,86 @@ def scan_sources(
     return total
 
 
+def _print_scan_summary(config: RadarConfig) -> None:
+    store = EvidenceStore(config.database_path)
+    watermarks = store.list_scan_watermarks()
+    file_counts = _source_scan_counts(watermarks, "file_count_delta")
+    evidence_counts = _source_scan_counts(watermarks, "evidence_count_delta")
+    warning_counts = _source_scan_counts(watermarks, "warning_count_delta")
+    elapsed_counts = _source_scan_counts(watermarks, "elapsed_ms")
+    source_types = sorted(
+        set(file_counts) | set(evidence_counts) | set(warning_counts) | set(elapsed_counts)
+    )
+
+    typer.echo("scan_summary=true")
+    typer.echo(f"database_path={config.database_path}")
+    typer.echo(f"source_count={len(source_types)}")
+    for source_type in source_types:
+        typer.echo(
+            f"source.{source_type} "
+            f"files={file_counts.get(source_type, 0)} "
+            f"evidence={evidence_counts.get(source_type, 0)} "
+            f"warnings={warning_counts.get(source_type, 0)} "
+            f"elapsed_ms={elapsed_counts.get(source_type, 0)}"
+        )
+    typer.echo(f"next_action=uv run tradar generate --days {config.days_window} --agent codex")
+
+
 def _scan_can_skip_issue(issue: DoctorIssue) -> bool:
     return issue.path is not None and issue.event in {
         "source.unreadable",
         "source.broad_root_rejected",
     }
+
+
+def _emit_progress(progress_sink: ProgressSink | None, message: str) -> None:
+    if progress_sink is not None:
+        progress_sink(message)
+
+
+def _run_agent_with_progress(
+    adapter: AgentAdapter,
+    evidence_pack: EvidencePack,
+    prompt_assets: PromptAssets,
+    tool_policy: ToolPolicy,
+    run_context: RunContext,
+    progress_sink: ProgressSink | None,
+    heartbeat_interval_seconds: float,
+) -> AgentRawOutput:
+    if progress_sink is None:
+        return adapter.run(
+            evidence_pack=evidence_pack,
+            prompt_assets=prompt_assets,
+            tool_policy=tool_policy,
+            run_context=run_context,
+        )
+    interval = max(heartbeat_interval_seconds, 0.001)
+    started = perf_counter()
+    next_heartbeat = started + interval
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        future = executor.submit(
+            adapter.run,
+            evidence_pack=evidence_pack,
+            prompt_assets=prompt_assets,
+            tool_policy=tool_policy,
+            run_context=run_context,
+        )
+        while True:
+            try:
+                wait_seconds = max(min(next_heartbeat - perf_counter(), interval), 0.001)
+                return future.result(timeout=wait_seconds)
+            except FutureTimeoutError:
+                now = perf_counter()
+                if now >= next_heartbeat:
+                    elapsed_s = int(now - started)
+                    _emit_progress(
+                        progress_sink,
+                        "agent_progress "
+                        f"elapsed_s={elapsed_s} "
+                        "status=running "
+                        f"artifact_path={run_context.output_dir}",
+                    )
+                    next_heartbeat = now + interval
 
 
 def generate_report(
@@ -455,15 +541,21 @@ def generate_report(
     agent_adapter: AgentAdapter | None = None,
     repair_adapter: SchemaRepairAdapter | None = None,
     html_enhancer: Enhancer | None = None,
+    progress_sink: ProgressSink | None = None,
+    agent_progress_interval_seconds: float = 10.0,
 ) -> Path:
     agent_mode = _require_agent_mode(agent_mode)
     render_mode = _require_render_mode(render_mode)
     if days < 1:
         raise ValueError("days must be positive")
+    _emit_progress(
+        progress_sink, f"generate_started days={days} agent={agent_mode} render={render_mode}"
+    )
     store = EvidenceStore(config.database_path)
     store.initialize()
     since = utc_now() - timedelta(days=days)
     evidence = store.list_evidence_since(since)
+    _emit_progress(progress_sink, f"evidence_loaded count={len(evidence)}")
     run_id = _new_run_id()
     run_dir = config.output_dir / run_id
     pack = (
@@ -490,16 +582,35 @@ def generate_report(
             "mode": "base",
             "status": "not_requested" if agent_mode == "base" else "skipped_empty_evidence",
         }
+        _emit_progress(
+            progress_sink,
+            "agent_skipped reason=base_mode"
+            if agent_mode == "base"
+            else "agent_skipped reason=empty_evidence",
+        )
     else:
         prompt_assets = _load_prompt_assets()
         adapter = _agent_adapter_for_mode(agent_mode, agent_adapter, config)
         run_context = RunContext(run_id=run_id, output_dir=str(run_dir))
-        raw_output = adapter.run(
-            evidence_pack=pack,
-            prompt_assets=prompt_assets,
-            tool_policy=ToolPolicy(allow_search=True),
-            run_context=run_context,
+        _emit_progress(
+            progress_sink,
+            f"agent_started mode={agent_mode} timeout_seconds={config.agent_timeout_seconds}",
         )
+        run_dir.mkdir(parents=True, exist_ok=True)
+        _emit_progress(
+            progress_sink,
+            f"agent_artifacts run_dir={run_dir} prompt={run_dir / 'agent_prompt.md'}",
+        )
+        raw_output = _run_agent_with_progress(
+            adapter,
+            pack,
+            prompt_assets,
+            ToolPolicy(allow_search=True),
+            run_context,
+            progress_sink,
+            agent_progress_interval_seconds,
+        )
+        _emit_progress(progress_sink, f"agent_completed elapsed_ms={raw_output.elapsed_ms}")
         active_repair_adapter = repair_adapter or _schema_repair_adapter_for_mode(
             agent_mode,
             prompt_assets,
@@ -522,6 +633,12 @@ def generate_report(
                 artifact_path=str(run_dir),
             ) from exc
         report = _normalize_opportunity_cards(report, pack, config.database_path)
+        _emit_progress(
+            progress_sink,
+            "schema_validated "
+            f"cards={len(report.opportunity_cards)} "
+            f"repair_used={str(repair_trace.calls > 0 if repair_trace else False).lower()}",
+        )
         agent_artifact = _agent_raw_artifact(raw_output, prompt_assets, agent_mode)
 
     report = _with_runtime_summary(
@@ -540,7 +657,9 @@ def generate_report(
         repair_trace=repair_trace,
     )
     enhancer = _html_enhancer_for_mode(render_mode, prompt_assets, run_dir, html_enhancer, config)
+    _emit_progress(progress_sink, f"render_started mode={render_mode}")
     render_result = render_with_optional_enhancement(report, enhancer=enhancer)
+    _emit_progress(progress_sink, f"render_completed rendered_by={render_result.rendered_by}")
     report = _with_rendered_by(report, render_result.rendered_by, render_result.enhanced_elapsed_ms)
     warnings.extend(_render_warning_rows(render_result.warnings))
     warning_rows = _with_warning_run_id(warnings, run_id)
@@ -562,6 +681,7 @@ def generate_report(
         report_html=html,
         save_agent_raw_output=config.save_agent_raw_output,
     )
+    _emit_progress(progress_sink, "debug_bundle_written=true")
     store.record_run(run_record)
     deleted_run_dirs = apply_debug_retention(
         config.output_dir,
@@ -1027,9 +1147,8 @@ def _with_runtime_summary(
             "repair_elapsed_ms": (
                 repair_trace.elapsed_ms if repair_trace and repair_trace.calls > 0 else None
             ),
-            "confidence_note": report.run_summary.confidence_note or _default_confidence_note(
-                agent_mode
-            ),
+            "confidence_note": report.run_summary.confidence_note
+            or _default_confidence_note(agent_mode),
         }
     )
     return report.copy(update={"run_summary": run_summary})
@@ -1392,6 +1511,34 @@ def _print_agent_schema_error(error: AgentOutputSchemaError) -> None:
         "next_action=inspect_agent_raw_output_and_schema_repair"
     )
     typer.echo(str(error))
+
+
+def _print_open_report_result(report_path: Path, open_report: bool) -> None:
+    if not open_report:
+        typer.echo("open_report=disabled")
+        return
+    typer.echo(f"open_report={_open_report(report_path)}")
+
+
+def _open_report(report_path: Path) -> str:
+    if not sys.stdout.isatty():
+        return "skipped_non_interactive"
+    if sys.platform == "darwin":
+        command = ["open", str(report_path)]
+    elif os.name == "posix":
+        command = ["xdg-open", str(report_path)]
+    else:
+        return "unsupported_platform"
+    try:
+        result = subprocess.run(
+            command,
+            check=False,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+    except OSError:
+        return "failed"
+    return "opened" if result.returncode == 0 else "failed"
 
 
 def _print_doctor_issues(issues: Iterable[DoctorIssue]) -> None:

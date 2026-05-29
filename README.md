@@ -57,10 +57,10 @@ Initialize local sources:
 
 ```bash
 uv run tradar init \
-  --codex-session-path ~/.codex/sessions \
-  --claude-project-path ~/.claude/projects \
   --project-root /path/to/project
 ```
+
+`tradar init` uses `~/.codex/sessions` and `~/.claude/projects` by default.
 
 Check source health:
 
@@ -79,6 +79,9 @@ Generate a base report from existing evidence:
 ```bash
 uv run tradar generate --days 30
 ```
+
+In an interactive terminal, `generate` opens the produced `report.html`. Use
+`--no-open` for scripted runs.
 
 Run scan + analyst generation:
 
