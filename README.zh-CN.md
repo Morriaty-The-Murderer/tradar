@@ -44,10 +44,10 @@ uv sync
 
 ```bash
 uv run tradar init \
-  --codex-session-path ~/.codex/sessions \
-  --claude-project-path ~/.claude/projects \
   --project-root /path/to/project
 ```
+
+`tradar init` 默认使用 `~/.codex/sessions` 和 `~/.claude/projects`。
 
 检查 source 状态：
 
@@ -66,6 +66,9 @@ uv run tradar scan
 ```bash
 uv run tradar generate --days 30
 ```
+
+在交互式终端里，`generate` 会自动打开生成的 `report.html`；脚本场景可加
+`--no-open`。
 
 执行 scan + analyst generation：
 

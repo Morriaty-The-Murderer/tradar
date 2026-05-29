@@ -2,6 +2,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from tradar.config.defaults import (
+    DEFAULT_CLAUDE_PROJECT_PATH,
+    DEFAULT_CODEX_SESSION_PATH,
+    DEFAULT_MAX_SOURCE_FILE_BYTES,
+)
 from tradar.config.loader import load_config, write_default_config
 
 
@@ -49,9 +54,11 @@ def test_default_config_keeps_agent_raw_output_enabled(tmp_path: Path) -> None:
 
     config = load_config(config_path)
 
+    assert config.codex_session_paths == [DEFAULT_CODEX_SESSION_PATH]
+    assert config.claude_project_paths == [DEFAULT_CLAUDE_PROJECT_PATH]
     assert config.save_agent_raw_output is True
     assert config.max_pack_tokens == 24000
-    assert config.max_source_file_bytes == 5 * 1024 * 1024
+    assert config.max_source_file_bytes == DEFAULT_MAX_SOURCE_FILE_BYTES
     assert config.agent_timeout_seconds == 300
     assert config.schema_repair_timeout_seconds == 300
     assert config.html_design_timeout_seconds == 300
@@ -59,9 +66,17 @@ def test_default_config_keeps_agent_raw_output_enabled(tmp_path: Path) -> None:
     assert config.claude_binary == "claude"
     assert config.debug_retention_run_count == 20
     assert config.low_confidence_evidence_threshold == 3
+    assert f'codex_session_paths = ["{DEFAULT_CODEX_SESSION_PATH}"]' in config_path.read_text(
+        encoding="utf-8"
+    )
+    assert f'claude_project_paths = ["{DEFAULT_CLAUDE_PROJECT_PATH}"]' in config_path.read_text(
+        encoding="utf-8"
+    )
     assert "save_agent_raw_output = true" in config_path.read_text(encoding="utf-8")
     assert "max_pack_tokens = 24000" in config_path.read_text(encoding="utf-8")
-    assert "max_source_file_bytes = 5242880" in config_path.read_text(encoding="utf-8")
+    assert f"max_source_file_bytes = {DEFAULT_MAX_SOURCE_FILE_BYTES}" in config_path.read_text(
+        encoding="utf-8"
+    )
     assert "agent_timeout_seconds = 300" in config_path.read_text(encoding="utf-8")
     assert "schema_repair_timeout_seconds = 300" in config_path.read_text(encoding="utf-8")
     assert "html_design_timeout_seconds = 300" in config_path.read_text(encoding="utf-8")
@@ -90,3 +105,16 @@ def test_config_can_disable_debug_retention_with_zero(tmp_path: Path) -> None:
     config = load_config(config_path)
 
     assert config.debug_retention_run_count == 0
+
+
+def test_default_config_can_write_empty_source_paths_explicitly(tmp_path: Path) -> None:
+    config_path = write_default_config(
+        tmp_path / "config.toml",
+        codex_session_paths=[],
+        claude_project_paths=[],
+    )
+
+    config = load_config(config_path)
+
+    assert config.codex_session_paths == []
+    assert config.claude_project_paths == []

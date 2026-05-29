@@ -123,6 +123,16 @@ def render_with_optional_enhancement(
             enhanced_elapsed_ms=enhanced.elapsed_ms,
         )
 
+    if _report_requires_interactive_demo(report) and not _has_interactive_demo_prototype(
+        enhanced.html
+    ):
+        return RenderResult(
+            html=base_html,
+            rendered_by="base",
+            warnings=["render.enhanced_static_prototype"],
+            enhanced_elapsed_ms=enhanced.elapsed_ms,
+        )
+
     html = enhanced.html.replace("rendered_by: base", "rendered_by: enhanced")
     return RenderResult(
         html=html,
@@ -130,6 +140,25 @@ def render_with_optional_enhancement(
         warnings=list(enhanced.warnings),
         enhanced_elapsed_ms=enhanced.elapsed_ms,
     )
+
+
+def _report_requires_interactive_demo(report: RadarReport) -> bool:
+    return any(card.demo_brief is not None for card in report.opportunity_cards)
+
+
+def _has_interactive_demo_prototype(html: str) -> bool:
+    lowered = html.lower()
+    state_markers = [
+        "addeventlistener",
+        "aria-pressed",
+        "aria-selected",
+        "classlist.toggle",
+        "data-state",
+        "data-active",
+        "<details",
+        "checked",
+    ]
+    return "data-demo-action" in lowered and any(marker in lowered for marker in state_markers)
 
 
 def _build_html_design_input(prompt_asset: PromptAsset, base_html: str) -> str:
