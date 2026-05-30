@@ -53,20 +53,50 @@ Status: planned.
 - Keep `AGENTS.md` and `CLAUDE.md` focused on agent behavior; keep
   `TRADAR.md` focused on opportunity judgment.
 
-## v0.5: tradar-core Service Boundary
+## v0.5: tradar-core Trace Consumer Boundary
 
 Status: planned.
 
 - Separate a stable `tradar-core` boundary from the Typer CLI surface.
-- Make source diagnostics, privacy policy, evidence normalization, packing,
-  scoring, decisions, feedback events, and run artifacts available through
-  typed core APIs.
+- Make `tradar-core` consume a Push-shaped trace envelope, even when the first
+  sources are still pulled from Codex sessions, Claude Code sessions, git, and
+  docs.
+- Make source diagnostics, trace ingest, privacy policy, evidence
+  normalization, packing, scoring, decisions, feedback events, and run artifacts
+  available through typed core APIs.
 - Keep UI presentation, agent prompts, scheduled execution, and daemon
   lifecycle outside core unless they need a narrow shared interface.
 - Add contract tests so `tradar-cli`, future `tradar-ui`, and daemon workflows
   use the same evidence and report semantics.
 
-## v0.6: Agent Handoff And Skills
+## v0.6: Push Ingest Interface
+
+Status: planned.
+
+- Define the first public trace envelope for AI-native builder workflows.
+- Add `tradar ingest` so sources can push newline-delimited trace events through
+  stdin or file input.
+- Include schema version, source identity, project identity, actor, timestamp,
+  action type, evidence summary, privacy labels, and idempotency keys.
+- Keep Pull connectors as edge producers that translate external history into
+  the same ingest interface.
+- Document validation errors so external tools can conform without knowing
+  Tradar internals.
+
+## v0.7: Hooks, SDK, And MCP Producers
+
+Status: planned.
+
+- Provide first push producers such as `tradar install codex-hook` and
+  `tradar install obsidian-doc-mcp`.
+- Define the installer shape for hooks and MCP servers without requiring every
+  source integration to be fully implemented in the same release.
+- Prototype language packages such as `@tradar/trace`, `tradar-trace-py`, and
+  `tradar-trace-rs` once the ingest envelope is stable enough.
+- Keep all producers local-first and explicit about whether any external
+  service is contacted.
+
+## v0.8: Agent Handoff And Skills
 
 Status: planned.
 
@@ -78,7 +108,7 @@ Status: planned.
   agents remain responsible for implementation.
 - Add fixtures for handoff prompt stability and evidence citation integrity.
 
-## v0.7: User Feedback Loop
+## v0.9: User Feedback Loop
 
 Status: planned.
 
@@ -91,7 +121,7 @@ Status: planned.
 - Add report sections that explain why Tradar changed its confidence after
   prior user outcomes.
 
-## v0.8: Proactive Local Runs
+## v0.10: Proactive Local Runs
 
 Status: planned.
 
@@ -102,7 +132,7 @@ Status: planned.
   week" instead of forcing weak cards into the report.
 - Store proactive run artifacts with the same traceability as manual runs.
 
-## v0.9: Desktop Or Menu-Bar Shell
+## v0.11: Desktop Or Menu-Bar Shell
 
 Status: planned.
 
@@ -113,7 +143,20 @@ Status: planned.
 - Keep all private work traces local unless the user explicitly exports or
   shares a report.
 
+## v1.0: Open Agent Trace Protocol
+
+Status: planned.
+
+- Publish a stable builder trace specification once the Push ingest interface
+  has proven useful in real workflows.
+- Treat Open Agent Trace Protocol as a working name until the standard's scope
+  is clearer.
+- Define conformance rules for external producers, including required fields,
+  privacy labels, source identity, evidence references, and versioning.
+- Keep Tradar as the opportunity judgment engine that consumes the protocol,
+  not just a collection of one-off Pull adapters.
+
 ## Later
 
-- Additional agent trace connectors.
+- Additional Pull connectors where no Push producer exists yet.
 - Optional team workflows, if the single-builder loop proves useful first.

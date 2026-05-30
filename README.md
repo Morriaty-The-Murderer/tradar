@@ -7,10 +7,15 @@ Find project signals in your agent work traces.
 [English](README.md) | [简体中文](README.zh-CN.md)
 
 Tradar is a local-first CLI that turns your coding-agent activity into an
-evidence-backed project radar. It reads Codex sessions, Claude Code sessions,
-project documents, and git traces, then produces a traceable HTML report with
-opportunity cards, a suggested 48-hour demo, decision prompts, and debug
-artifacts.
+evidence-backed project radar. It currently pulls Codex sessions, Claude Code
+sessions, project documents, and git traces, then produces a traceable HTML
+report with opportunity cards, a suggested 48-hour demo, decision prompts, and
+debug artifacts.
+
+The longer-term direction is a trace consumption protocol and opportunity
+judgment engine for AI-native builder workflows. Pull adapters are the first
+phase; Push ingest, hooks, SDKs, MCP producers, and an open builder trace format
+are the direction.
 
 The name combines **trace** and **radar**: Tradar helps builders notice the
 project signals already present in their own work traces.
@@ -33,7 +38,7 @@ the project ideas that keep reappearing in their own work.
 
 ## Status
 
-Tradar is an early v0.2 CLI. It is usable from a source checkout, builds local
+Tradar is an early v0.3 CLI. It is usable from a source checkout, builds local
 wheel and source distributions, and has release automation prepared for PyPI
 trusted publishing.
 

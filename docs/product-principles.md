@@ -11,6 +11,10 @@ Its job is to decide what is worth building next from real work traces, then
 handoff the build to tools such as Codex, Claude Code, or another execution
 agent.
 
+Tradar should not be understood as a small utility that reads Codex and Claude
+Code history files. The larger product is a trace consumption protocol and
+opportunity judgment engine for AI-native builder workflows.
+
 The product should move from reactive CLI commands toward proactive discovery:
 weekly radar runs, post-session scans, and post-commit reflection. The long
 term shape can be a desktop app, menu-bar app, or background daemon, but the
@@ -43,6 +47,64 @@ first durable interface is still the CLI.
 8. Tradar should become proactive.
    Its best mode is a weekly radar, post-session scan, or post-commit
    reflection, not waiting for the user to ask.
+
+9. Tradar should define trace interfaces, not only adapters.
+   Early versions can pull from external sources, but the long-term architecture
+   should let tools push standard builder traces into Tradar.
+
+## Input Strategy
+
+Tradar needs both Pull and Push input modes, but they should not be equal in
+the architecture.
+
+Early product:
+
+```bash
+tradar scan codex
+tradar scan claude
+tradar scan git
+tradar scan docs
+tail -f agent.jsonl | tradar ingest
+```
+
+In this phase, Tradar owns the burden of adapting Codex sessions, Claude Code
+sessions, git commit logs, and local docs. Pull adapters are useful because the
+ecosystem will not adopt a Tradar format before the product proves useful.
+
+Middle product:
+
+```bash
+tradar install codex-hook
+tradar install obsidian-doc-mcp
+```
+
+In this phase, Tradar provides hook, SDK, and MCP entry points so other tools
+can push trace events to Tradar without Tradar reverse-engineering every
+history store.
+
+Long-term product:
+
+```typescript
+import { trace } from "@tradar/trace";
+```
+
+```python
+import tradar_trace
+```
+
+```rust
+use tradar_trace as trace;
+```
+
+In this phase, Tradar defines a standard trace format for builder workflows.
+The working name is Open Agent Trace Protocol. The name can change; the product
+commitment should not. Tradar should become the consumer and validator of a
+standard trace contract, not an endless collection of source-specific Pull
+adapters.
+
+This changes the core architecture: `tradar-core` should consume Push-shaped
+trace envelopes. Pull connectors are edge producers that translate external
+history into that same ingest interface.
 
 ## Agent-Native References
 
@@ -108,8 +170,9 @@ point is not their coding domain, but their product architecture.
 - Hooks and external events.
   Claude Code hooks and MCP channels show how agent systems become proactive.
   Tradar's proactive mode should be local and conservative first: post-commit
-  reflection, post-session scan, and weekly radar. External channels come
-  later.
+  reflection, post-session scan, and weekly radar. The same idea should also
+  shape the Push interface: hooks and MCP servers should emit trace envelopes,
+  not require Tradar to parse every private history format forever.
 
 ### What Tradar Must Design Independently
 
@@ -123,6 +186,12 @@ point is not their coding domain, but their product architecture.
   A recommendation is invalid without source IDs, snippets or summaries,
   confidence notes, and explicit warnings. This is the product's trust layer,
   not an implementation detail.
+
+- Trace ingest contract.
+  Tradar needs a stable event envelope for source identity, timestamps, actor,
+  project, action, content summary, evidence references, privacy labels,
+  idempotency keys, and schema version. This contract should be usable by
+  `tradar ingest`, hooks, SDKs, MCP servers, and future daemon surfaces.
 
 - User feedback loop.
   Tradar needs its own feedback flywheel:
@@ -180,6 +249,7 @@ interfaces.
 Core owns:
 
 - source registration and diagnostics;
+- trace envelope, ingest API, validation, idempotency, and schema versioning;
 - privacy and redaction policy execution;
 - raw event and normalized evidence contracts;
 - local evidence store access;
@@ -194,6 +264,8 @@ Core should not own:
 - terminal presentation;
 - desktop app layout;
 - menu-bar scheduling UX;
+- source-specific Pull adapter internals once they can be expressed as edge
+  producers;
 - Codex-specific or Claude-specific prompt text beyond typed adapter
   contracts;
 - external uploads;
@@ -205,27 +277,40 @@ Core should not own:
 1. Product principles and `TRADAR.md` preference contract.
    This locks the product's judgment model before more interfaces are added.
 
-2. `tradar-core` service boundary.
-   Extract stable contracts so CLI, UI, daemon, and agent integrations do not
-   fork the pipeline.
+2. `tradar-core` trace consumer boundary.
+   Extract stable contracts so CLI, UI, daemon, agent integrations, and future
+   Push producers all write into one ingest and evidence pipeline.
 
-3. Agent integration and handoff skills.
+3. Push ingest interface.
+   Define `tradar ingest`, the trace envelope schema, source identity,
+   idempotency, privacy labels, and validation errors before adding many more
+   Pull adapters.
+
+4. Hook, SDK, and MCP producers.
+   Add the first push producers, such as Codex hooks, Obsidian/Docs MCP, and
+   library packages that can emit standard builder traces.
+
+5. Agent integration and handoff skills.
    Add first-class handoff prompts and package Tradar usage as Codex and Claude
    Code skills.
 
-4. User feedback loop.
+6. User feedback loop.
    Record accepted, rejected, started, completed, and abandoned opportunities,
    then feed those outcomes back into later ranking.
 
-5. Proactive local runs.
+7. Proactive local runs.
    Add weekly radar, post-session scan, and post-commit reflection once the
    feedback model can keep proactive suggestions from becoming noise.
 
-6. Desktop, menu-bar, or daemon surface.
+8. Desktop, menu-bar, or daemon surface.
    Build the always-on product shell only after the core loop proves it can say
    useful things without being asked.
 
-7. Team workflows.
+9. Open Agent Trace Protocol.
+   If the Push interface proves useful, publish language SDKs and a stable
+   trace spec so external builder tools can conform to Tradar's trace contract.
+
+10. Team workflows.
    Defer team mode until the single-builder evidence loop is clearly useful.
 
 ## Research References

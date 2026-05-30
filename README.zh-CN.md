@@ -6,7 +6,9 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-Tradar 是一个 local-first CLI，用来把你的 coding-agent 工作痕迹转成有证据链的项目雷达。它会读取 Codex sessions、Claude Code sessions、项目文档和 git traces，然后生成可追溯的 HTML 报告，包含项目机会卡、48 小时 demo 建议、决策提示和 debug artifacts。
+Tradar 是一个 local-first CLI，用来把你的 coding-agent 工作痕迹转成有证据链的项目雷达。它当前会主动拉取 Codex sessions、Claude Code sessions、项目文档和 git traces，然后生成可追溯的 HTML 报告，包含项目机会卡、48 小时 demo 建议、决策提示和 debug artifacts。
+
+更长期的方向是面向 AI-native builder 工作流的 trace consumption protocol 和机会判断引擎。Pull adapters 是第一阶段；Push ingest、hooks、SDK、MCP producers，以及开放的 builder trace format 才是中长期方向。
 
 Tradar 来自 **trace** 和 **radar** 的组合。它的目标是帮助 builder 从自己的真实工作痕迹里发现已经反复出现、但还没有被系统命名和落地的项目信号。
 
@@ -23,7 +25,7 @@ Tradar 来自 **trace** 和 **radar** 的组合。它的目标是帮助 builder 
 
 ## 当前状态
 
-Tradar 目前是 v0.2 早期 CLI。它可以从源码 checkout 运行，可以构建本地 wheel 和 source distribution，并已准备好基于 PyPI trusted publishing 的发布自动化。
+Tradar 目前是 v0.3 早期 CLI。它可以从源码 checkout 运行，可以构建本地 wheel 和 source distribution，并已准备好基于 PyPI trusted publishing 的发布自动化。
 
 ## 环境要求
 
