@@ -89,6 +89,8 @@ Required behavior:
 - Do not delete, rename, or hide command blocks. They are copyable local CLI
   actions, not fake buttons.
 - Keep the privacy notice visible near the top.
+- Keep confidence notes, warning events, source scan metrics, and omitted
+  evidence context visible enough for the user to judge signal quality.
 - Preserve the Demo Brief `prototype_panel` data, but render it as a polished
   high-fidelity product UI screen. Do not draw a wireframe, blueprint grid,
   low-fidelity mockup, placeholder skeleton, or box-and-line prototype.

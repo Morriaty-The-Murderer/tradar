@@ -42,10 +42,15 @@ Do not publish:
 
 ## Privacy Controls
 
-Tradar v0.2 keeps privacy controls explicit and local:
+Tradar keeps privacy controls explicit and local:
 
 - The source allowlist limits project documents to `AGENTS.md`, `CLAUDE.md`,
   `README.md`, `CHANGELOG.md`, `docs/**/*.md`, and `notes/**/*.md`.
+- The privacy gate redacts common credential assignments before evidence is
+  normalized. Matches are recorded as `privacy.redacted:<rule>` parse warnings.
+- `redaction_patterns` lets users add local regular-expression hooks without
+  changing source code. These hooks run during `scan`, before content reaches
+  the SQLite store or any analyst adapter.
 - The evidence pack budget caps how many evidence items and approximate tokens
   can reach an analyst adapter.
 - Analyst prompts use evidence titles, summaries, source metadata, recurrence,
@@ -62,6 +67,13 @@ Tradar v0.2 keeps privacy controls explicit and local:
   preserving structured evidence, report, warning, and render artifacts.
 - Generated run directories, local SQLite databases, and debug artifacts are
   private by default and must be reviewed before sharing.
+
+Example local redaction policy:
+
+```toml
+redaction_patterns = ["VIP-\\d+", "CUSTOM-TOKEN-[A-Z0-9]+"]
+redaction_replacement = "<REDACTED>"
+```
 
 ## Reviewer Checklist
 

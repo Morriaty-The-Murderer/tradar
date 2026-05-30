@@ -155,6 +155,19 @@ project docs connector 只读取 `AGENTS.md`、`CLAUDE.md`、`README.md`、`CHAN
 
 如果某个已请求 source 有 evidence 但低于默认 source minimum，`generate` 会输出 `P2 source.evidence_below_quota`。这不会阻断运行，但表示该来源样本量偏少，报告质量可能偏向其他来源。
 
+## redaction policy hooks
+
+`scan` 会先通过 PrivacyGate 处理每条 RawEvent，再写入 SQLite。默认规则会脱敏常见的 API key、token、secret、password 赋值形态。命中规则时，event 的 `parse_warnings` 会增加 `privacy.redacted:<rule>`，后续 Run Summary 也会计入 warning。
+
+可以在配置里增加本地正则 hook：
+
+```toml
+redaction_patterns = ["VIP-\\d+", "CUSTOM-TOKEN-[A-Z0-9]+"]
+redaction_replacement = "<REDACTED>"
+```
+
+这些规则只影响后续 scan，不会回写已经生成的历史 run artifact。
+
 ## raw output 保存策略
 
 默认会在 run 目录写入 `agent_raw_output.json`，便于追溯 agent 输出。如果不希望保存原始输出，在配置中设置：
@@ -187,6 +200,8 @@ claude_binary = "claude"
 
 `scan` 使用 `max_source_file_bytes` 跳过过大的 JSONL / Markdown 源文件，默认 50MB。`generate` 会把 `max_evidence_items` 和 `max_pack_tokens` 传给 pack builder。超出条数或 token 预算的 evidence 不会进入 analyst prompt，会记录在 `evidence_pack.json` 的 `omitted_summary` 中。
 
+Pack builder 会在送入 analyst 前做一次信号级去重：标题和摘要归一化后相同的 noisy trace 只保留一个代表项，并把代表项的 `recurrence_count` 合并为该信号的总重复次数。被去重的条目会记录在 `omitted_summary.by_reason.duplicate_signal`。排序优先级是 recurrence、confidence、recency、id，因此同样重复次数下，高置信 evidence 会优先进入 pack。
+
 `generate` 在交互式终端里会自动打开生成的 `report.html`。脚本或 CI 场景可使用 `--no-open`。
 
 `agent_timeout_seconds` 控制 analyst agent 外呼超时，超时会输出 `agent.timeout` 并停止本次生成。`schema_repair_timeout_seconds` 控制一次 schema repair 外呼。`html_design_timeout_seconds` 控制增强 HTML 外呼；超时只会回退 base HTML。
@@ -202,7 +217,7 @@ claude_binary = "claude"
 
 生成报告时，如果某个已请求 source 的 evidence 数量大于 0 但低于默认 source minimum，本次 run 会在 `warnings.jsonl` 和 Run Summary 记录 `source.evidence_below_quota`。
 
-Run Summary 会展示 `source_scan_file_counts` 和 `source_scan_elapsed_ms`，用于回看每类 source 本次扫描的文件规模和耗时。使用 analyst agent 时，Run Summary 还会记录 `agent_elapsed_ms`、`search_used_count`、`search_trace_summary`、`repair_used` 和 `repair_elapsed_ms`。使用增强渲染时会记录 `enhanced_elapsed_ms`。
+Run Summary 会展示 `source_scan_file_counts` 和 `source_scan_elapsed_ms`，用于回看每类 source 本次扫描的文件规模和耗时。`confidence_note` 会包含 pack item 数、omitted 数和 duplicate signal 数，帮助判断报告是“信号足够”还是“噪音/预算截断较多”。使用 analyst agent 时，Run Summary 还会记录 `agent_elapsed_ms`、`search_used_count`、`search_trace_summary`、`repair_used` 和 `repair_elapsed_ms`。使用增强渲染时会记录 `enhanced_elapsed_ms`。
 
 ## debug retention
 
