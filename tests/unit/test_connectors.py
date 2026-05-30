@@ -56,6 +56,17 @@ def test_codex_session_records_encrypted_content_warning() -> None:
     assert "response item contains encrypted_content" in event.parse_warnings
 
 
+def test_codex_noisy_proactive_fixture_parses_sanitized_public_example() -> None:
+    event = parse_codex_session(FIXTURES / "codex" / "noisy_proactive_loop.jsonl")
+
+    assert event.source_id == "codex-session-proactive"
+    assert event.metadata["cwd"] == "<USER_HOME>/PycharmProjects/<REPO_NAME>"
+    assert event.metadata["tool_call_count"] == 1
+    assert "proactive signal loop" in event.raw_text
+    assert "/Users/" not in event.raw_text
+    assert "sk-" not in event.raw_text
+
+
 def test_claude_code_fixture_parses_to_raw_event() -> None:
     event = parse_claude_code_session(FIXTURES / "claude" / "happy_path.jsonl")
 
@@ -67,6 +78,18 @@ def test_claude_code_fixture_parses_to_raw_event() -> None:
     assert event.metadata["tool_call_count"] == 2
     assert "black-box language" in event.raw_text
     assert "soft ranking weights" in event.raw_text
+
+
+def test_claude_skill_trace_fixture_parses_sanitized_public_example() -> None:
+    event = parse_claude_code_session(FIXTURES / "claude" / "skill_trace.jsonl")
+
+    assert event.source_id == "claude-session-skill-trace"
+    assert event.title == "Tradar Skill Loop"
+    assert event.metadata["cwd"] == "<USER_HOME>/PycharmProjects/<REPO_NAME>"
+    assert event.metadata["tool_call_count"] == 2
+    assert "tradar run --days 30" in event.raw_text
+    assert "/Users/" not in event.raw_text
+    assert "sk-" not in event.raw_text
 
 
 def test_claude_code_missing_timestamp_falls_back_to_file_mtime() -> None:

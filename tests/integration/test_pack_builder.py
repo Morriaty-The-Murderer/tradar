@@ -92,6 +92,58 @@ def test_pack_builder_uses_global_ranking_after_minimum_quotas() -> None:
     assert pack.omitted_summary.total_omitted == 0
 
 
+def test_pack_builder_deduplicates_noisy_cross_agent_signals() -> None:
+    evidence = [
+        _evidence(
+            "codex_session",
+            "codex-duplicate",
+            "Proactive local signal loop",
+            "2026-05-22T00:00:00Z",
+            2,
+        ),
+        _evidence(
+            "claude_code_session",
+            "claude-duplicate",
+            "Proactive local signal loop",
+            "2026-05-23T00:00:00Z",
+            3,
+        ),
+        _evidence("project_docs", "doc-1", "Redaction policy hooks", "2026-05-24T00:00:00Z", 1),
+    ]
+
+    pack = build_evidence_pack(evidence, max_evidence_items=10)
+
+    assert [item.title for item in pack.items].count("Proactive local signal loop") == 1
+    duplicate = next(item for item in pack.items if item.title == "Proactive local signal loop")
+    assert duplicate.recurrence_count == 5
+    assert pack.omitted_summary.total_omitted == 1
+    assert pack.omitted_summary.by_reason == {"duplicate_signal": 1}
+
+
+def test_pack_builder_prefers_confidence_when_recurrence_ties() -> None:
+    evidence = [
+        _evidence(
+            "codex_session",
+            "low-confidence",
+            "Low confidence",
+            "2026-05-24T00:00:00Z",
+            2,
+        ).copy(update={"confidence": 0.2}),
+        _evidence(
+            "codex_session",
+            "high-confidence",
+            "High confidence",
+            "2026-05-20T00:00:00Z",
+            2,
+        ).copy(update={"confidence": 0.95}),
+    ]
+
+    pack = build_evidence_pack(evidence, max_evidence_items=1, min_per_source={"codex_session": 1})
+
+    assert [item.title for item in pack.items] == ["High confidence"]
+    assert pack.omitted_summary.total_omitted == 1
+
+
 def test_pack_builder_respects_token_budget() -> None:
     evidence = [
         _evidence("codex_session", "codex-1", "Codex one", "2026-05-20T00:00:00Z", 1),

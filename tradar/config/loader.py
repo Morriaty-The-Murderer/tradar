@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import ast
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -20,6 +20,7 @@ from tradar.config.defaults import (
     DEFAULT_MAX_PACK_TOKENS,
     DEFAULT_MAX_SOURCE_FILE_BYTES,
     DEFAULT_OUTPUT_DIR,
+    DEFAULT_REDACTION_REPLACEMENT,
     DEFAULT_SCHEMA_REPAIR_TIMEOUT_SECONDS,
     DEFAULT_STATE_DIR,
 )
@@ -46,6 +47,8 @@ class RadarConfig:
     save_agent_raw_output: bool = True
     debug_retention_run_count: int = DEFAULT_DEBUG_RETENTION_RUN_COUNT
     low_confidence_evidence_threshold: int = DEFAULT_LOW_CONFIDENCE_EVIDENCE_THRESHOLD
+    redaction_patterns: list[str] = field(default_factory=list)
+    redaction_replacement: str = DEFAULT_REDACTION_REPLACEMENT
 
     @property
     def database_path(self) -> Path:
@@ -102,6 +105,10 @@ def load_config(config_path: Path) -> RadarConfig:
             "low_confidence_evidence_threshold",
             DEFAULT_LOW_CONFIDENCE_EVIDENCE_THRESHOLD,
         ),
+        redaction_patterns=[str(item) for item in data.get("redaction_patterns", [])],
+        redaction_replacement=str(
+            data.get("redaction_replacement") or DEFAULT_REDACTION_REPLACEMENT
+        ),
     )
 
 
@@ -140,6 +147,8 @@ def write_default_config(
         "save_agent_raw_output = true",
         f"debug_retention_run_count = {DEFAULT_DEBUG_RETENTION_RUN_COUNT}",
         f"low_confidence_evidence_threshold = {DEFAULT_LOW_CONFIDENCE_EVIDENCE_THRESHOLD}",
+        "redaction_patterns = []",
+        f'redaction_replacement = "{DEFAULT_REDACTION_REPLACEMENT}"',
     ]
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return path

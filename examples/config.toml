@@ -27,3 +27,8 @@ claude_binary = "claude"
 save_agent_raw_output = true
 debug_retention_run_count = 20
 low_confidence_evidence_threshold = 3
+
+# Optional extra local redaction hooks. Defaults already catch common
+# API-key/token/secret assignments.
+redaction_patterns = []
+redaction_replacement = "REDACTED"

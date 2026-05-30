@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -40,6 +41,7 @@ class EvidencePackItem:
 class OmittedSummary:
     total_omitted: int
     by_source_type: dict[str, int] = field(default_factory=dict)
+    by_reason: dict[str, int] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -60,12 +62,13 @@ def build_evidence_pack(
         raise ValueError("max_pack_tokens must be positive")
 
     evidence_list = list(evidence)
+    pack_candidates, duplicate_ids = _deduplicate_evidence(evidence_list)
     selected: list[Evidence] = []
     selected_ids: set[str] = set()
     selected_tokens = 0
 
     by_source: dict[str, list[Evidence]] = {}
-    for item in evidence_list:
+    for item in pack_candidates:
         by_source.setdefault(item.source_type, []).append(item)
     requested_minimums = min_per_source or DEFAULT_MIN_PER_SOURCE
     minimums = _effective_minimums(requested_minimums, by_source, max_evidence_items)
@@ -87,7 +90,7 @@ def build_evidence_pack(
             selected_ids.add(candidate.id)
             selected_tokens += candidate_tokens
 
-    remaining = [item for item in evidence_list if item.id not in selected_ids]
+    remaining = [item for item in pack_candidates if item.id not in selected_ids]
     for candidate in sorted(remaining, key=_ranking_key):
         if len(selected) >= max_evidence_items:
             break
@@ -102,18 +105,55 @@ def build_evidence_pack(
     omitted_by_source: dict[str, int] = {}
     for item in omitted:
         omitted_by_source[item.source_type] = omitted_by_source.get(item.source_type, 0) + 1
+    duplicate_count = len(duplicate_ids)
+    omitted_by_reason = {"duplicate_signal": duplicate_count} if duplicate_count else {}
 
     return EvidencePack(
         items=[_to_pack_item(item) for item in selected],
         omitted_summary=OmittedSummary(
             total_omitted=len(omitted),
             by_source_type=omitted_by_source,
+            by_reason=omitted_by_reason,
         ),
     )
 
 
-def _ranking_key(evidence: Evidence) -> tuple[int, float, str]:
-    return (-evidence.recurrence_count, -evidence.observed_at.timestamp(), evidence.id)
+def _deduplicate_evidence(evidence_list: list[Evidence]) -> tuple[list[Evidence], set[str]]:
+    grouped: dict[str, list[Evidence]] = {}
+    for item in evidence_list:
+        grouped.setdefault(_dedupe_key(item), []).append(item)
+
+    unique: list[Evidence] = []
+    duplicate_ids: set[str] = set()
+    for group in grouped.values():
+        representative = sorted(group, key=_ranking_key)[0]
+        duplicates = [item for item in group if item.id != representative.id]
+        duplicate_ids.update(item.id for item in duplicates)
+        if duplicates:
+            representative = representative.copy(
+                update={
+                    "recurrence_count": sum(item.recurrence_count for item in group),
+                    "confidence": max(item.confidence for item in group),
+                    "first_seen_at": min(item.first_seen_at for item in group),
+                    "last_seen_at": max(item.last_seen_at for item in group),
+                }
+            )
+        unique.append(representative)
+    return unique, duplicate_ids
+
+
+def _dedupe_key(evidence: Evidence) -> str:
+    text = " ".join([evidence.title, evidence.summary]).lower()
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def _ranking_key(evidence: Evidence) -> tuple[int, float, float, str]:
+    return (
+        -evidence.recurrence_count,
+        -evidence.confidence,
+        -evidence.observed_at.timestamp(),
+        evidence.id,
+    )
 
 
 def _effective_minimums(

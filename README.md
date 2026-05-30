@@ -249,9 +249,9 @@ docs/
 
 ## Roadmap
 
-- Improve source discovery and deduplication across noisy agent traces.
-- Add richer redaction and privacy policy controls.
-- Improve enhanced HTML report design quality.
+- Add a Codex/Claude skill wrapper for agent-triggered Tradar runs.
+- Add scheduled local runs that only notify on meaningful signal changes.
+- Explore a desktop shell or menu-bar wrapper after the proactive loop is proven.
 
 ## License
 

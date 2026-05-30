@@ -420,7 +420,10 @@ def scan_sources(
     store.initialize()
     scanned_at = utc_now()
     total = 0
-    gate = privacy_gate or PrivacyGate()
+    gate = privacy_gate or PrivacyGate.from_patterns(
+        config.redaction_patterns,
+        replacement=config.redaction_replacement,
+    )
 
     for (
         source_type,
@@ -655,6 +658,7 @@ def generate_report(
         source_health=source_health,
         raw_output=raw_output,
         repair_trace=repair_trace,
+        pack=pack,
     )
     enhancer = _html_enhancer_for_mode(render_mode, prompt_assets, run_dir, html_enhancer, config)
     _emit_progress(progress_sink, f"render_started mode={render_mode}")
@@ -1075,9 +1079,7 @@ def _report_from_pack(
             evidence_count=evidence_count,
             warning_count=warning_count,
             rendered_by="base",
-            confidence_note=(
-                "Base report only summarizes evidence; use --agent codex for project judgment."
-            ),
+            confidence_note=_default_confidence_note("base", pack),
         ),
         opportunity_cards=[],
         this_weeks_demo=None,
@@ -1102,6 +1104,7 @@ def _with_runtime_summary(
     source_health: SourceHealth,
     raw_output: AgentRawOutput | None,
     repair_trace: _SchemaRepairTrace | None,
+    pack: EvidencePack,
 ) -> RadarReport:
     config_overrides = dict(report.run_summary.config_overrides)
     config_overrides.update({"agent_mode": agent_mode, "render_mode": render_mode})
@@ -1148,7 +1151,7 @@ def _with_runtime_summary(
                 repair_trace.elapsed_ms if repair_trace and repair_trace.calls > 0 else None
             ),
             "confidence_note": report.run_summary.confidence_note
-            or _default_confidence_note(agent_mode),
+            or _default_confidence_note(agent_mode, pack),
         }
     )
     return report.copy(update={"run_summary": run_summary})
@@ -1241,10 +1244,21 @@ def _status_hint_for_card(
     return "new"
 
 
-def _default_confidence_note(agent_mode: str) -> str:
+def _default_confidence_note(agent_mode: str, pack: EvidencePack | None = None) -> str:
+    if pack is None:
+        pack_suffix = ""
+    else:
+        duplicate_signals = pack.omitted_summary.by_reason.get("duplicate_signal", 0)
+        pack_suffix = (
+            f" pack_items={len(pack.items)} omitted={pack.omitted_summary.total_omitted} "
+            f"duplicate_signals={duplicate_signals}."
+        )
     if agent_mode == "base":
-        return "Base report only summarizes evidence; use --agent codex for project judgment."
-    return "Analyst agent output was schema-validated against local evidence ids."
+        return (
+            "Base report only summarizes evidence; use --agent codex for project judgment."
+            + pack_suffix
+        )
+    return "Analyst agent output was schema-validated against local evidence ids." + pack_suffix
 
 
 def _with_rendered_by(

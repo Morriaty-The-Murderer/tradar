@@ -28,13 +28,16 @@ Status: implemented in the current source checkout.
 
 ## v0.3: Better Signal Quality
 
-Status: planned.
+Status: implemented in the current source checkout.
 
-- Improve deduplication across noisy agent traces.
-- Add richer redaction policy hooks.
-- Improve opportunity-card ranking and confidence notes.
-- Add more connector fixtures from sanitized public examples.
-- Improve enhanced HTML report quality.
+- Deduplicate noisy repeated signals across agent traces before analyst packing.
+- Add default secret redaction and configurable local redaction policy hooks.
+- Rank packed evidence by recurrence, confidence, recency, and stable ID.
+- Add Run Summary confidence notes for pack coverage, omitted evidence, and
+  duplicate signals.
+- Add more connector fixtures from sanitized public Codex and Claude examples.
+- Keep enhanced HTML focused on preserving confidence, warnings, required
+  report sections, and interactive Demo Brief previews.
 
 ## v0.4: Product Judgment Preferences
 
