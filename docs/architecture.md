@@ -44,10 +44,13 @@ Optional enhanced HTML renderer
 ## Core Boundaries
 
 - Connectors read local evidence and emit `RawEvent` objects.
-- The privacy gate is the stable insertion point for future redaction rules.
-- The normalizer converts raw events into deduplicated evidence records.
+- The privacy gate applies default secret redaction and optional local
+  redaction policy hooks before events are normalized.
+- The normalizer converts raw events into evidence records.
 - The evidence store is local SQLite under `~/.local/share/tradar/` by default.
-- The evidence pack builder enforces source quotas and token budgets before any analyst adapter sees evidence.
+- The evidence pack builder deduplicates noisy repeated signals, ranks by
+  recurrence, confidence, and recency, then enforces source quotas and token
+  budgets before any analyst adapter sees evidence.
 - The base renderer is deterministic and does not call external agents.
 - The optional Codex analyst, Claude Code analyst, and enhanced HTML adapters
   are explicit opt-in paths.

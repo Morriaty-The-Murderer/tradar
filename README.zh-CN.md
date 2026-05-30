@@ -224,9 +224,9 @@ docs/
 
 ## Roadmap
 
-- 改进 noisy agent traces 里的 source discovery 和去重。
-- 增强 redaction 和 privacy policy 控制。
-- 提升 enhanced HTML report 的设计质量。
+- 增加 Codex / Claude 可调用的 Tradar Skill 包装。
+- 增加本地定时运行，只在信号发生有意义变化时提醒。
+- 在 proactive loop 被验证后，再探索桌面端或状态栏包装。
 
 ## License
 

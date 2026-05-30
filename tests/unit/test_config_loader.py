@@ -30,6 +30,8 @@ def test_config_loads_save_agent_raw_output_flag(tmp_path: Path) -> None:
                 'claude_binary = "/opt/bin/claude-code"',
                 "debug_retention_run_count = 7",
                 "low_confidence_evidence_threshold = 9",
+                'redaction_patterns = ["VIP-\\\\d+", "TOKEN-[A-Z]+"]',
+                'redaction_replacement = "<PRIVATE>"',
             ]
         ),
         encoding="utf-8",
@@ -47,6 +49,8 @@ def test_config_loads_save_agent_raw_output_flag(tmp_path: Path) -> None:
     assert config.claude_binary == "/opt/bin/claude-code"
     assert config.debug_retention_run_count == 7
     assert config.low_confidence_evidence_threshold == 9
+    assert config.redaction_patterns == ["VIP-\\d+", "TOKEN-[A-Z]+"]
+    assert config.redaction_replacement == "<PRIVATE>"
 
 
 def test_default_config_keeps_agent_raw_output_enabled(tmp_path: Path) -> None:
@@ -66,6 +70,8 @@ def test_default_config_keeps_agent_raw_output_enabled(tmp_path: Path) -> None:
     assert config.claude_binary == "claude"
     assert config.debug_retention_run_count == 20
     assert config.low_confidence_evidence_threshold == 3
+    assert config.redaction_patterns == []
+    assert config.redaction_replacement == "<REDACTED>"
     assert f'codex_session_paths = ["{DEFAULT_CODEX_SESSION_PATH}"]' in config_path.read_text(
         encoding="utf-8"
     )
@@ -84,6 +90,8 @@ def test_default_config_keeps_agent_raw_output_enabled(tmp_path: Path) -> None:
     assert 'claude_binary = "claude"' in config_path.read_text(encoding="utf-8")
     assert "debug_retention_run_count = 20" in config_path.read_text(encoding="utf-8")
     assert "low_confidence_evidence_threshold = 3" in config_path.read_text(encoding="utf-8")
+    assert "redaction_patterns = []" in config_path.read_text(encoding="utf-8")
+    assert 'redaction_replacement = "<REDACTED>"' in config_path.read_text(encoding="utf-8")
 
 
 def test_config_can_disable_debug_retention_with_zero(tmp_path: Path) -> None:

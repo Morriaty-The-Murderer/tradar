@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime
 from pathlib import Path
 
 from tradar.cli.app import generate_report, scan_sources
 from tradar.config.loader import load_config
+from tradar.evidence.store import EvidenceStore
 
 ROOT = Path(__file__).resolve().parents[2]
 FIXTURES = ROOT / "tests" / "fixtures"
@@ -44,6 +46,8 @@ def test_generate_populates_run_summary_sources_and_debug_path(tmp_path: Path) -
     assert summary["report_status"] == "complete"
     assert summary["next_steps"] == []
     assert summary["confidence_note"]
+    assert "pack_items=" in summary["confidence_note"]
+    assert "duplicate_signals=" in summary["confidence_note"]
     assert summary["warning_events"]["connector.parse_warning"] >= 2
     assert summary["source_warning_counts"]["claude_code_session"] >= 1
     assert summary["source_warning_counts"]["codex_session"] >= 1
@@ -264,6 +268,36 @@ def test_generate_applies_configured_pack_token_budget(tmp_path: Path) -> None:
     assert pack["omitted_summary"]["total_omitted"] > 0
 
 
+def test_scan_sources_applies_configured_redaction_patterns_before_store(
+    tmp_path: Path,
+) -> None:
+    project_root = tmp_path / "project"
+    project_root.mkdir()
+    (project_root / "README.md").write_text(
+        "# Launch\n\nVIP-1234 should be redacted before evidence is stored.\n",
+        encoding="utf-8",
+    )
+    config_path = _write_config(
+        tmp_path,
+        include_claude=False,
+        codex_path=tmp_path / "missing-codex",
+        project_root=project_root,
+        redaction_patterns=[r"VIP-\d+"],
+        redaction_replacement="TICKET",
+    )
+    config = load_config(config_path)
+
+    scan_sources(config)
+
+    evidence = EvidenceStore(config.database_path).list_evidence_since(
+        datetime.fromisoformat("2026-01-01T00:00:00+00:00")
+    )
+    project_evidence = next(item for item in evidence if item.source_type == "project_docs")
+    assert "VIP-1234" not in project_evidence.raw_excerpt
+    assert "TICKET should be redacted" in project_evidence.raw_excerpt
+    assert "privacy.redacted:config_1" in project_evidence.parse_warnings
+
+
 def test_generate_applies_configured_debug_retention(tmp_path: Path) -> None:
     config_path = _write_config(tmp_path, debug_retention_run_count=2)
     config = load_config(config_path)
@@ -290,6 +324,8 @@ def _write_config(
     codex_path: Path | None = None,
     max_pack_tokens: int = 24000,
     max_source_file_bytes: int | None = None,
+    redaction_patterns: list[str] | None = None,
+    redaction_replacement: str = "<REDACTED>",
 ) -> Path:
     config_path = tmp_path / "config.toml"
     claude_line = (
@@ -310,6 +346,10 @@ def _write_config(
                 f"debug_retention_run_count = {debug_retention_run_count}",
                 f"low_confidence_evidence_threshold = {low_confidence_evidence_threshold}",
                 f"max_pack_tokens = {max_pack_tokens}",
+                'redaction_patterns = [{}]'.format(
+                    ", ".join(json.dumps(pattern) for pattern in redaction_patterns or [])
+                ),
+                f'redaction_replacement = "{redaction_replacement}"',
                 *(
                     [f"max_source_file_bytes = {max_source_file_bytes}"]
                     if max_source_file_bytes is not None
