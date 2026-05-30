@@ -17,6 +17,7 @@ This repository should only publish code, tests, sanitized fixtures, public docs
 - `tradar/`
 - `tests/`
 - `docs/architecture.md`
+- `docs/product-principles.md`
 - `docs/milestones.md`
 - `docs/usage.md`
 - `docs/open-source-boundary.md`
