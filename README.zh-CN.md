@@ -195,6 +195,7 @@ git config core.hooksPath .githooks
 
 - [使用指南](docs/usage.md)
 - [架构说明](docs/architecture.md)
+- [产品原则](docs/product-principles.md)
 - [里程碑](docs/milestones.md)
 - [开源边界](docs/open-source-boundary.md)
 - [隐私模型](docs/privacy.md)

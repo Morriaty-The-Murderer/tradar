@@ -217,6 +217,7 @@ git config core.hooksPath .githooks
 
 - [Usage guide](docs/usage.md)
 - [Architecture](docs/architecture.md)
+- [Product principles](docs/product-principles.md)
 - [Milestones](docs/milestones.md)
 - [Open-source boundary](docs/open-source-boundary.md)
 - [Privacy model](docs/privacy.md)

@@ -75,6 +75,7 @@ The implementation keeps this boundary by:
 ## Related
 
 - [Usage guide](usage.md)
+- [Product principles](product-principles.md)
 - [Milestones](milestones.md)
 - [Open-source boundary](open-source-boundary.md)
 - [Privacy model](privacy.md)
